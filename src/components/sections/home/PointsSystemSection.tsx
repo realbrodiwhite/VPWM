@@ -1,6 +1,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PawPrint, Calculator, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const pointsFactors = [
   "Number of Dogs",
@@ -34,13 +36,13 @@ export default function PointsSystemSection() {
             </CardHeader>
             <CardContent className="space-y-6 text-base">
               <p className="text-card-foreground/90">
-                Our Points System ensures fair and transparent pricing. Instead of flat rates, we assess key factors for each service, meaning you only pay for the work required. This guarantees a personalized and equitable price for every cleanup.
+                Our Points System ensures fair and transparent pricing. We assess key factors for each service, meaning you only pay for the work required. This guarantees a personalized and equitable price.
               </p>
               <div>
                 <h4 className="font-semibold text-lg text-primary mb-3">Key Factors We Consider:</h4>
-                <ul className="space-y-2 pl-2">
+                <ul className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-3 pl-2">
                   {pointsFactors.map((factor) => (
-                    <li key={factor} className="flex items-start gap-3">
+                    <li key={factor} className="flex items-start gap-2">
                       <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
                       <span className="text-card-foreground/80">{factor}</span>
                     </li>
@@ -48,10 +50,10 @@ export default function PointsSystemSection() {
                 </ul>
               </div>
                <p className="text-card-foreground/90">
-                Each factor choice adds points to your visit's total score. More complex jobs (e.g., more dogs, larger yard, heavier initial cleanup) accrue more points. This total score then directly corresponds to one of our clear pricing tiers. See this system in action and get an instant estimate on our 'Get Quote' page to understand your costs upfront.
+                Each factor adds points to your visit&apos;s total. Complex jobs (more dogs, larger yard, heavier initial cleanup) get more points. This total score then matches one of our clear pricing tiers. Use our &apos;Get Quote&apos; page to see this in action and get an instant estimate.
               </p>
                <p className="text-sm text-muted-foreground pt-4 border-t mt-6">
-                This tailored approach provides fair pricing for your specific needs and allows us to deliver efficient, thorough service.
+                This tailored approach provides fair pricing and helps us deliver efficient, thorough service.
               </p>
             </CardContent>
           </Card>
@@ -60,4 +62,3 @@ export default function PointsSystemSection() {
     </section>
   );
 }
-
