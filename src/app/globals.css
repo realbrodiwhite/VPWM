@@ -4,45 +4,45 @@
 
 @layer base {
   :root {
-    --background: 47 43% 93%; /* Keep: Light beige #F5F3E6 */
-    --foreground: 30 45% 25%; /* New: Darker Traditional Brown for text */
+    --background: 47 43% 93%; /* Light beige */
+    --foreground: 30 45% 15%; /* Very Dark Brown for text */
 
-    --card: 47 43% 98%; /* Keep: Slightly lighter beige */
-    --card-foreground: 30 45% 25%; /* New: Darker Traditional Brown */
+    --card: 47 43% 98%; /* Slightly lighter beige */
+    --card-foreground: 30 45% 15%; /* Very Dark Brown */
 
-    --popover: 47 43% 98%; /* Keep: Slightly lighter beige */
-    --popover-foreground: 30 45% 25%; /* New: Darker Traditional Brown */
+    --popover: 47 43% 98%; /* Slightly lighter beige */
+    --popover-foreground: 30 45% 15%; /* Very Dark Brown */
 
-    --primary: 134 29% 30%; /* Keep: Forest green #386641 */
-    --primary-foreground: 47 100% 98%; /* Keep: Very light, almost white */
+    --primary: 134 29% 30%; /* Forest green */
+    --primary-foreground: 47 100% 98%; /* Very light, almost white */
 
-    --secondary: 35 50% 80%; /* New: Light warm brown */
-    --secondary-foreground: 30 45% 25%; /* New: Darker Traditional Brown */
+    --secondary: 35 30% 75%; /* Lighter, less saturated brown/grey */
+    --secondary-foreground: 30 45% 15%; /* Very Dark Brown */
 
-    --muted: 47 30% 88%; /* Keep: Lighter beige for muted elements */
-    --muted-foreground: 30 35% 45%; /* New: Lighter Traditional Brown */
+    --muted: 47 30% 88%; /* Lighter beige for muted elements */
+    --muted-foreground: 30 35% 35%; /* Darker Muted Brown */
 
-    --accent: 50 90% 55%; /* New: Traditional Yellow (Goldish Yellow) */
-    --accent-foreground: 30 45% 15%; /* New: Very Dark Brown for text on accent */
+    --accent: 50 90% 55%; /* Traditional Yellow (Goldish Yellow) */
+    --accent-foreground: 30 45% 10%; /* Even Darker Brown/Near Black for text on accent */
 
     --destructive: 0 84.2% 60.2%; /* Keep */
     --destructive-foreground: 0 0% 98%; /* Keep */
 
-    --border: 30 30% 70%; /* New: Soft Traditional Brown border */
-    --input: 30 30% 85%; /* New: Lighter Traditional Brown for inputs */
-    --ring: 134 29% 30%; /* Keep: Primary color for focus rings */
+    --border: 30 30% 60%; /* More noticeable Brown/Grey border */
+    --input: 30 30% 90%; /* Lighter Grey/Brown for inputs */
+    --ring: 134 29% 30%; /* Primary color for focus rings */
 
     --radius: 0.5rem;
 
     /* Sidebar specific colors */
-    --sidebar-background: 134 29% 25%; /* Keep: Darker Forest Green */
-    --sidebar-foreground: 47 43% 85%; /* Keep: Off-white/Light Beige for text */
-    --sidebar-primary: 50 90% 55%; /* New: Traditional Yellow for active/hover states */
-    --sidebar-primary-foreground: 30 45% 15%; /* New: Very Dark Brown for text on yellow */
-    --sidebar-accent: 134 29% 35%; /* Keep: Slightly lighter green than background for hover */
-    --sidebar-accent-foreground: 47 43% 90%; /* Keep */
-    --sidebar-border: 134 29% 20%; /* Keep */
-    --sidebar-ring: 50 90% 55%; /* New: Traditional yellow for focus rings in sidebar */
+    --sidebar-background: 134 29% 20%; /* Darker Forest Green */
+    --sidebar-foreground: 47 43% 90%; /* Off-white/Light Beige for text */
+    --sidebar-primary: 50 90% 55%; /* Traditional Yellow for active/hover states */
+    --sidebar-primary-foreground: 30 45% 10%; /* Very Dark Brown for text on yellow */
+    --sidebar-accent: 134 29% 30%; /* Primary Green for hover */
+    --sidebar-accent-foreground: 47 43% 95%; /* Lighter beige on hover green */
+    --sidebar-border: 134 29% 15%; /* Very Dark Green border */
+    --sidebar-ring: 50 90% 55%; /* Traditional yellow for focus rings in sidebar */
 
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
@@ -52,43 +52,43 @@
   }
 
   .dark {
-    --background: 30 15% 12%; /* New: Very dark traditional brown */
-    --foreground: 47 43% 85%; /* Keep: Light beige */
+    --background: 30 15% 10%; /* Very dark traditional brown/near black */
+    --foreground: 47 43% 88%; /* Light beige/off-white */
 
-    --card: 30 15% 18%; /* New: Slightly lighter dark brown */
-    --card-foreground: 47 43% 85%; /* Keep */
+    --card: 30 15% 15%; /* Slightly lighter dark brown */
+    --card-foreground: 47 43% 88%; /* Light beige/off-white */
 
-    --popover: 30 15% 18%; /* New */
-    --popover-foreground: 47 43% 85%; /* Keep */
+    --popover: 30 15% 15%; /* Slightly lighter dark brown */
+    --popover-foreground: 47 43% 88%; /* Light beige/off-white */
 
-    --primary: 134 35% 50%; /* Adjusted: Lighter Forest Green for dark mode */
-    --primary-foreground: 47 100% 98%; /* Keep */
+    --primary: 134 35% 55%; /* Lighter, more vibrant Forest Green for dark mode */
+    --primary-foreground: 30 45% 10%; /* Very dark brown/black for contrast on lighter green */
 
-    --secondary: 30 20% 35%; /* New: Muted, darker brown */
-    --secondary-foreground: 47 43% 85%; /* Keep */
+    --secondary: 30 20% 30%; /* Muted, darker brown */
+    --secondary-foreground: 47 43% 88%; /* Light beige/off-white */
 
-    --muted: 30 10% 25%; /* New: Darker brown */
-    --muted-foreground: 47 43% 70%; /* Keep: Lighter beige/gray */
+    --muted: 30 10% 22%; /* Darker brown */
+    --muted-foreground: 47 43% 65%; /* Medium Grey/Beige */
 
-    --accent: 50 80% 60%; /* New: Traditional Yellow for dark mode */
-    --accent-foreground: 30 45% 10%; /* New: Very dark brown */
+    --accent: 50 85% 60%; /* Slightly more vibrant Yellow for dark mode */
+    --accent-foreground: 30 45% 8%; /* Almost Black for text on accent */
 
     --destructive: 0 70% 55%; /* Adjusted: Slightly brighter red */
     --destructive-foreground: 0 0% 98%; /* Keep */
 
-    --border: 30 15% 30%; /* New: Darker, muted brown */
-    --input: 30 15% 28%; /* New: Slightly lighter than border for dark inputs */
-    --ring: 134 35% 50%; /* Adjusted: Primary green for dark mode */
+    --border: 30 15% 25%; /* Darker, muted brown */
+    --input: 30 15% 28%; /* Slightly lighter than border for dark inputs */
+    --ring: 134 35% 55%; /* Primary green for dark mode */
 
     /* Sidebar specific colors for dark theme */
-    --sidebar-background: 134 20% 10%; /* Adjusted: Darker version of primary green */
-    --sidebar-foreground: 47 43% 80%; /* Keep */
-    --sidebar-primary: 50 80% 60%; /* New: Traditional Yellow */
-    --sidebar-primary-foreground: 134 20% 5%; /* Adjusted: Very dark green/black for text on yellow */
-    --sidebar-accent: 134 20% 20%; /* Adjusted: Slightly lighter dark green for hover */
-    --sidebar-accent-foreground: 47 43% 85%; /* Keep */
-    --sidebar-border: 134 20% 8%; /* Adjusted: Very dark green */
-    --sidebar-ring: 50 80% 60%; /* New: Traditional Yellow */
+    --sidebar-background: 134 20% 8%; /* Very Dark Green */
+    --sidebar-foreground: 47 43% 85%; /* Light Beige for text */
+    --sidebar-primary: 50 85% 60%; /* Traditional Yellow for active/hover states */
+    --sidebar-primary-foreground: 134 20% 5%; /* Near Black for text on yellow */
+    --sidebar-accent: 134 20% 18%; /* Slightly lighter dark green for hover */
+    --sidebar-accent-foreground: 47 43% 90%; /* Light Beige on hover green */
+    --sidebar-border: 134 20% 6%; /* Very dark green border */
+    --sidebar-ring: 50 85% 60%; /* Traditional yellow for focus rings in sidebar */
 
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
