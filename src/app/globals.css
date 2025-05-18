@@ -5,25 +5,25 @@
 @layer base {
   :root {
     --background: 47 43% 93%; /* Light beige */
-    --foreground: 30 45% 15%; /* Very Dark Brown for text */
+    --foreground: 0 0% 10%; /* Very Dark Grey/Near Black for text */
 
     --card: 47 43% 98%; /* Slightly lighter beige */
-    --card-foreground: 30 45% 15%; /* Very Dark Brown */
+    --card-foreground: 0 0% 10%; /* Very Dark Grey/Near Black */
 
     --popover: 47 43% 98%; /* Slightly lighter beige */
-    --popover-foreground: 30 45% 15%; /* Very Dark Brown */
+    --popover-foreground: 0 0% 10%; /* Very Dark Grey/Near Black */
 
     --primary: 134 29% 30%; /* Forest green */
-    --primary-foreground: 47 100% 98%; /* Very light, almost white */
+    --primary-foreground: 0 0% 10%; /* Black for text on primary */
 
     --secondary: 35 30% 75%; /* Lighter, less saturated brown/grey */
-    --secondary-foreground: 30 45% 15%; /* Very Dark Brown */
+    --secondary-foreground: 0 0% 10%; /* Black for text on secondary */
 
     --muted: 47 30% 88%; /* Lighter beige for muted elements */
     --muted-foreground: 30 35% 35%; /* Darker Muted Brown */
 
     --accent: 50 90% 55%; /* Traditional Yellow (Goldish Yellow) */
-    --accent-foreground: 30 45% 10%; /* Even Darker Brown/Near Black for text on accent */
+    --accent-foreground: 0 0% 10%; /* Black for text on accent */
 
     --destructive: 0 84.2% 60.2%; /* Keep */
     --destructive-foreground: 0 0% 98%; /* Keep */
@@ -53,25 +53,25 @@
 
   .dark {
     --background: 30 15% 10%; /* Very dark traditional brown/near black */
-    --foreground: 47 43% 88%; /* Light beige/off-white */
+    --foreground: 0 0% 95%; /* Very Light Grey/Near White for text */
 
     --card: 30 15% 15%; /* Slightly lighter dark brown */
-    --card-foreground: 47 43% 88%; /* Light beige/off-white */
+    --card-foreground: 0 0% 95%; /* Very Light Grey/Near White */
 
     --popover: 30 15% 15%; /* Slightly lighter dark brown */
-    --popover-foreground: 47 43% 88%; /* Light beige/off-white */
+    --popover-foreground: 0 0% 95%; /* Very Light Grey/Near White */
 
     --primary: 134 35% 55%; /* Lighter, more vibrant Forest Green for dark mode */
-    --primary-foreground: 30 45% 10%; /* Very dark brown/black for contrast on lighter green */
+    --primary-foreground: 0 0% 95%; /* White for text on primary */
 
     --secondary: 30 20% 30%; /* Muted, darker brown */
-    --secondary-foreground: 47 43% 88%; /* Light beige/off-white */
+    --secondary-foreground: 0 0% 95%; /* White for text on secondary */
 
     --muted: 30 10% 22%; /* Darker brown */
     --muted-foreground: 47 43% 65%; /* Medium Grey/Beige */
 
     --accent: 50 85% 60%; /* Slightly more vibrant Yellow for dark mode */
-    --accent-foreground: 30 45% 8%; /* Almost Black for text on accent */
+    --accent-foreground: 0 0% 10%; /* Black for text on accent (yellow needs dark text) */
 
     --destructive: 0 70% 55%; /* Adjusted: Slightly brighter red */
     --destructive-foreground: 0 0% 98%; /* Keep */

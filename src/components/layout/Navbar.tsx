@@ -25,11 +25,11 @@ export default function Navbar() {
           key={link.href}
           href={link.href}
           className={cn(
-            "text-sm font-medium transition-colors hover:text-primary flex items-center",
-            pathname === link.href || (link.href.includes("#") && pathname === "/" && link.href !== "/get-quote")
-              ? "text-primary"
-              : "text-muted-foreground",
-            isMobile && "block py-2 text-lg" 
+            "text-sm transition-colors hover:text-primary flex items-center",
+            "text-foreground font-bold", // Make all nav links use foreground color and bold
+            pathname === link.href && link.href !== "/get-quote" && "text-primary", // Keep active home section links primary color
+            pathname === "/get-quote" && link.href === "/get-quote" && "text-primary", // Keep active Get Quote link primary color
+            isMobile && "block py-2 text-lg"
           )}
         >
           {isMobile && link.icon ? <span className="mr-2">{link.icon}</span> : link.icon && !isMobile ? link.icon : null}
@@ -80,4 +80,3 @@ export default function Navbar() {
     </header>
   );
 }
-
