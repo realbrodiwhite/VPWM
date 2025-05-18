@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Route as RouteIcon, PlusCircle, Trash2, Loader2, MapPin, Clock, Fuel, PawPrint } from 'lucide-react';
+import { Route as RouteIcon, PlusCircle, Trash2, Loader2, MapPin, Clock, Fuel, Coffee, Utensils, ClipboardList } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { suggestOptimizedRoutes, SuggestOptimizedRoutesInput, SuggestOptimizedRoutesOutput } from '@/ai/flows/suggest-optimized-routes';
@@ -21,10 +21,15 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 const MIN_BASE_SERVICE_TIME_POINTS_SYSTEM = 15; // Minimum time from points system before overhead
 const SETUP_CLEANUP_TIME_MINUTES = 10; // Combined time for setup before and cleanup after service
 
+const BREAK_NAMES = {
+  SHORT: "Short Break (15 min)",
+  LUNCH: "Lunch Break (60 min)",
+};
+
 // Schema for a single appointment, including point calculation fields
 const appointmentSchema = z.object({
-  customerName: z.string().min(1, "Customer name is required"),
-  address: z.string().min(1, "Address is required"),
+  customerName: z.string().min(1, "Customer name or Task description is required"),
+  address: z.string().min(1, "Address or Location is required"),
   priority: z.enum(['high', 'medium', 'low']),
   
   // Fields for point calculation (from get-quote page)
@@ -40,7 +45,7 @@ const appointmentSchema = z.object({
   addon_deodorizing: z.boolean().optional(),
   addon_disposal: z.boolean().optional(),
 
-  serviceTime: z.coerce.number().min(MIN_BASE_SERVICE_TIME_POINTS_SYSTEM + SETUP_CLEANUP_TIME_MINUTES, `Service time must be at least ${MIN_BASE_SERVICE_TIME_POINTS_SYSTEM + SETUP_CLEANUP_TIME_MINUTES} minutes (incl. setup/cleanup)`), 
+  serviceTime: z.coerce.number().min(1, `Service/Stop time must be at least 1 minute.`), // Min 1 for breaks
 })
 .refine(data => !(data.dogs === 'more' && (data.num_more_dogs === undefined || isNaN(data.num_more_dogs) || data.num_more_dogs < 4)), {
   message: "Please specify the total number of dogs (4 or more).",
@@ -50,28 +55,32 @@ const appointmentSchema = z.object({
   message: "Please specify acreage greater than 1.",
   path: ['acres_extralarge'],
 })
-.refine(data => !((data.visit_type === 'initial_recurring' || data.visit_type === 'regular_recurring') && !data.recurring_freq), {
+.refine(data => !((data.visit_type === 'initial_recurring' || data.visit_type === 'regular_recurring') && !data.recurring_freq && data.customerName !== BREAK_NAMES.SHORT && data.customerName !== BREAK_NAMES.LUNCH), {
     message: "Please select recurring frequency.",
     path: ['recurring_freq'],
 })
-.refine(data => !((data.visit_type === 'onetime' || data.visit_type === 'initial_recurring') && !data.initial_condition), {
+.refine(data => !((data.visit_type === 'onetime' || data.visit_type === 'initial_recurring') && !data.initial_condition && data.customerName !== BREAK_NAMES.SHORT && data.customerName !== BREAK_NAMES.LUNCH), {
     message: "Please select initial cleanup condition.",
     path: ['initial_condition'],
 })
-.refine(data => !((data.visit_type === 'onetime' || data.visit_type === 'initial_recurring') && data.initial_condition === 'heavy' && (data.heavy_points === undefined || isNaN(data.heavy_points) || data.heavy_points < 6 || data.heavy_points > 10)), {
+.refine(data => !((data.visit_type === 'onetime' || data.visit_type === 'initial_recurring') && data.initial_condition === 'heavy' && (data.heavy_points === undefined || isNaN(data.heavy_points) || data.heavy_points < 6 || data.heavy_points > 10) && data.customerName !== BREAK_NAMES.SHORT && data.customerName !== BREAK_NAMES.LUNCH), {
     message: "Please assign points for heavy accumulation (6-10).",
     path: ['heavy_points'],
-});
+})
+.refine(data => { // Service time validation for non-break appointments
+  if (data.customerName === BREAK_NAMES.SHORT || data.customerName === BREAK_NAMES.LUNCH) return true;
+  return data.serviceTime >= (MIN_BASE_SERVICE_TIME_POINTS_SYSTEM + SETUP_CLEANUP_TIME_MINUTES);
+}, { message: `Service time must be at least ${MIN_BASE_SERVICE_TIME_POINTS_SYSTEM + SETUP_CLEANUP_TIME_MINUTES} minutes (incl. setup/cleanup) for non-break tasks.`, path: ['serviceTime'] });
+
 
 const smartRoutesSchema = z.object({
   currentLocation: z.string().min(1, "Current location is required"),
-  appointments: z.array(appointmentSchema).min(1, "At least one appointment is required"),
+  appointments: z.array(appointmentSchema).min(1, "At least one appointment/task is required"),
 });
 
 type AppointmentFormValues = z.infer<typeof appointmentSchema>;
 type SmartRoutesFormValues = z.infer<typeof smartRoutesSchema>;
 
-// Point calculation logic (adapted from get-quote page)
 const calculatePointsForAppointment = (data: Partial<AppointmentFormValues>): number => {
   let points = { dogs: 0, yard: 0, access: 0, frequency: 0, initial: 0, addons: 0 };
 
@@ -120,11 +129,8 @@ const calculatePointsForAppointment = (data: Partial<AppointmentFormValues>): nu
 };
 
 const convertPointsToTime = (totalPoints: number): number => {
-  // Base 15 mins + 2.5 mins per point.
   const pointsBasedTime = MIN_BASE_SERVICE_TIME_POINTS_SYSTEM + (totalPoints * 2.5);
-  // Add fixed setup/cleanup overhead
   const estimatedTimeWithOverhead = pointsBasedTime + SETUP_CLEANUP_TIME_MINUTES;
-  // Ensure a minimum time (base service time + setup/cleanup) and round it
   return Math.max(MIN_BASE_SERVICE_TIME_POINTS_SYSTEM + SETUP_CLEANUP_TIME_MINUTES, Math.round(estimatedTimeWithOverhead));
 };
 
@@ -143,13 +149,32 @@ const defaultAppointmentDetails: Omit<AppointmentFormValues, 'customerName' | 'a
 };
 const defaultCalculatedServiceTime = convertPointsToTime(calculatePointsForAppointment(defaultAppointmentDetails));
 
-const defaultAppointmentValues: AppointmentFormValues = {
+const defaultServiceAppointmentValues: AppointmentFormValues = {
     customerName: '', 
     address: '', 
     priority: 'medium',
     ...defaultAppointmentDetails,
     serviceTime: defaultCalculatedServiceTime 
 };
+
+const getBreakAppointmentValues = (
+  type: "short" | "lunch", 
+  currentLocationValue: string
+): AppointmentFormValues => {
+  const breakDuration = type === "short" ? 15 : 60;
+  const breakName = type === "short" ? BREAK_NAMES.SHORT : BREAK_NAMES.LUNCH;
+  return {
+    ...defaultAppointmentDetails, // Use simplest defaults for point fields
+    customerName: breakName,
+    address: currentLocationValue || "On Route",
+    priority: 'low',
+    serviceTime: breakDuration,
+    // Ensure specific visit_type that requires minimal sub-fields for breaks
+    visit_type: 'onetime',
+    initial_condition: 'recent',
+  };
+};
+
 
 export default function SmartRoutesPage() {
   const { toast } = useToast();
@@ -162,10 +187,10 @@ export default function SmartRoutesPage() {
     defaultValues: {
       currentLocation: '',
       appointments: [{ 
-        ...defaultAppointmentValues
+        ...defaultServiceAppointmentValues
       }],
     },
-    mode: 'onChange', // Important for live updates
+    mode: 'onChange', 
   });
 
   const { control, register, handleSubmit, formState: { errors }, watch, setValue, getValues } = form;
@@ -175,11 +200,20 @@ export default function SmartRoutesPage() {
     name: 'appointments',
   });
 
-  // Watch all appointment fields for changes to auto-calculate service time
   const watchedAppointments = watch('appointments');
+  const currentLocationValue = watch('currentLocation');
 
   useEffect(() => {
     watchedAppointments.forEach((app, index) => {
+      if (app.customerName === BREAK_NAMES.SHORT || app.customerName === BREAK_NAMES.LUNCH) {
+        // For breaks, ensure serviceTime is fixed and not recalculated based on points
+        const expectedTime = app.customerName === BREAK_NAMES.SHORT ? 15 : 60;
+        if (app.serviceTime !== expectedTime) {
+          setValue(`appointments.${index}.serviceTime`, expectedTime, { shouldValidate: true });
+        }
+        return;
+      }
+      // For regular appointments, calculate service time based on points
       const points = calculatePointsForAppointment(app);
       const time = convertPointsToTime(points);
       const currentServiceTime = getValues(`appointments.${index}.serviceTime`);
@@ -189,29 +223,27 @@ export default function SmartRoutesPage() {
     });
   }, [watchedAppointments, setValue, getValues]);
 
-
   const onSubmit: SubmitHandler<SmartRoutesFormValues> = async (data) => {
     setIsLoading(true);
     setRouteResults(null);
     setError(null);
     try {
-      // Prepare data for the AI flow (only customerName, address, serviceTime, priority)
       const appointmentsForAI = data.appointments.map(app => ({
         customerName: app.customerName,
         address: app.address,
-        serviceTime: app.serviceTime, // This is now the auto-calculated time
+        serviceTime: app.serviceTime,
         priority: app.priority,
       }));
 
       const result = await suggestOptimizedRoutes({
         currentLocation: data.currentLocation,
         appointments: appointmentsForAI,
-      } as SuggestOptimizedRoutesInput); // Cast because AI input is simpler
+      } as SuggestOptimizedRoutesInput);
 
       setRouteResults(result);
       toast({
         title: "Route Optimized!",
-        description: "AI has generated an optimized route. Travel times between stops are estimated by the AI. For breaks, consider adding a manual 'Break' appointment with a specific duration.",
+        description: "AI has generated an optimized route. Service times include setup/cleanup. Travel times are AI-estimated.",
       });
     } catch (e) {
       console.error("Error optimizing routes:", e);
@@ -226,7 +258,17 @@ export default function SmartRoutesPage() {
       setIsLoading(false);
     }
   };
-  
+
+  const totalWorkTime = watchedAppointments
+    .filter(app => app.customerName !== BREAK_NAMES.SHORT && app.customerName !== BREAK_NAMES.LUNCH)
+    .reduce((sum, app) => sum + (Number(app.serviceTime) || 0), 0);
+
+  const shortBreaksTaken = watchedAppointments.filter(app => app.customerName === BREAK_NAMES.SHORT).length;
+  const lunchBreaksTaken = watchedAppointments.filter(app => app.customerName === BREAK_NAMES.LUNCH).length;
+
+  const canTakeShortBreak = shortBreaksTaken < 2;
+  const canTakeLunchBreak = lunchBreaksTaken < 1 && totalWorkTime >= 240;
+
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-2">
@@ -239,8 +281,8 @@ export default function SmartRoutesPage() {
             <CardHeader>
               <CardTitle>Generate Efficient Service Routes</CardTitle>
               <CardDescription>
-                Input appointment details and current location. Service time includes an estimated {SETUP_CLEANUP_TIME_MINUTES} minutes for setup/cleanup per stop.
-                Travel time between stops will be optimized by the AI. For crew breaks, add an appointment manually (e.g., "Lunch Break", 30 mins).
+                Input task details and current location. Service time for jobs includes an estimated {SETUP_CLEANUP_TIME_MINUTES} minutes for setup/cleanup.
+                Travel time between stops will be optimized by the AI. Use the buttons below to add breaks.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -258,31 +300,62 @@ export default function SmartRoutesPage() {
               <Separator />
 
               <div>
-                <h3 className="text-lg font-medium text-primary mb-2">Appointments</h3>
+                <div className="flex flex-wrap gap-2 mb-4">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => append(defaultServiceAppointmentValues)}
+                        className="flex-grow sm:flex-grow-0"
+                    >
+                        <PlusCircle className="mr-2 h-4 w-4" /> Add Task/Appointment
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => append(getBreakAppointmentValues("short", currentLocationValue))}
+                        disabled={!canTakeShortBreak}
+                        className="flex-grow sm:flex-grow-0"
+                    >
+                        <Coffee className="mr-2 h-4 w-4" /> Add 15-min Break ({shortBreaksTaken}/2)
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => append(getBreakAppointmentValues("lunch", currentLocationValue))}
+                        disabled={!canTakeLunchBreak}
+                        className="flex-grow sm:flex-grow-0"
+                    >
+                        <Utensils className="mr-2 h-4 w-4" /> Add 60-min Lunch ({lunchBreaksTaken}/1)
+                    </Button>
+                </div>
+                
+                <h3 className="text-lg font-medium text-primary mb-2 flex items-center gap-2"><ClipboardList className="w-5 h-5"/>Scheduled Stops</h3>
                 {fields.map((field, index) => {
                   const appointmentErrors = errors.appointments?.[index];
+                  const currentAppointment = watchedAppointments[index] || {};
+                  const isBreak = currentAppointment.customerName === BREAK_NAMES.SHORT || currentAppointment.customerName === BREAK_NAMES.LUNCH;
+                  
                   const visitType = watch(`appointments.${index}.visit_type`);
                   const initialCondition = watch(`appointments.${index}.initial_condition`);
                   const numDogs = watch(`appointments.${index}.dogs`);
                   const yardSize = watch(`appointments.${index}.yard_size`);
 
-                  const showRecurring = visitType === 'initial_recurring' || visitType === 'regular_recurring';
-                  const showInitial = visitType === 'onetime' || visitType === 'initial_recurring';
-                  const showHeavy = showInitial && initialCondition === 'heavy';
-                  const showNumMore = numDogs === 'more';
-                  const showAcres = yardSize === 'extralarge';
+                  const showRecurring = !isBreak && (visitType === 'initial_recurring' || visitType === 'regular_recurring');
+                  const showInitial = !isBreak && (visitType === 'onetime' || visitType === 'initial_recurring');
+                  const showHeavy = !isBreak && showInitial && initialCondition === 'heavy';
+                  const showNumMore = !isBreak && numDogs === 'more';
+                  const showAcres = !isBreak && yardSize === 'extralarge';
 
                   return (
                     <Card key={field.id} className="mb-4 p-4 bg-muted/50">
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {/* Basic Appointment Info */}
                         <FormField
                           control={control}
                           name={`appointments.${index}.customerName`}
                           render={({ field: f }) => (
                             <FormItem>
-                              <FormLabel>Customer Name / Task</FormLabel>
-                              <FormControl><Input placeholder="John Doe or Lunch Break" {...f} className="bg-background" /></FormControl>
+                              <FormLabel>Task / Customer</FormLabel>
+                              <FormControl><Input placeholder={isBreak ? "Break Time" : "Customer Name or Task"} {...f} className="bg-background" readOnly={isBreak} /></FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -292,8 +365,8 @@ export default function SmartRoutesPage() {
                           name={`appointments.${index}.address`}
                           render={({ field: f }) => (
                             <FormItem>
-                              <FormLabel>Address / Location</FormLabel>
-                              <FormControl><Input placeholder="456 Oak Ave or On Route" {...f} className="bg-background" /></FormControl>
+                              <FormLabel>Location / Address</FormLabel>
+                              <FormControl><Input placeholder={isBreak ? "On Route / Break Location" : "Service Address"} {...f} className="bg-background" /></FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -304,7 +377,7 @@ export default function SmartRoutesPage() {
                           render={({ field: controllerField }) => (
                             <FormItem>
                               <FormLabel>Priority</FormLabel>
-                               <Select onValueChange={controllerField.onChange} defaultValue={controllerField.value}>
+                               <Select onValueChange={controllerField.onChange} defaultValue={controllerField.value} disabled={isBreak}>
                                 <FormControl>
                                   <SelectTrigger className="bg-background"><SelectValue placeholder="Select priority" /></SelectTrigger>
                                 </FormControl>
@@ -318,125 +391,13 @@ export default function SmartRoutesPage() {
                             </FormItem>
                           )}
                         />
-
-                        {/* Point Calculation Fields */}
-                        <FormField control={control} name={`appointments.${index}.dogs`} render={({ field: f }) => (
-                            <FormItem className="space-y-1 md:col-span-2 lg:col-span-1">
-                                <FormLabel>Number of Dogs</FormLabel>
-                                <FormControl>
-                                    <RadioGroup onValueChange={f.onChange} defaultValue={f.value} className="flex flex-wrap gap-x-4 gap-y-2">
-                                        <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="1" /></FormControl><FormLabel className="font-normal">1</FormLabel></FormItem>
-                                        <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="2" /></FormControl><FormLabel className="font-normal">2</FormLabel></FormItem>
-                                        <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="3" /></FormControl><FormLabel className="font-normal">3</FormLabel></FormItem>
-                                        <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="more" /></FormControl><FormLabel className="font-normal">More</FormLabel></FormItem>
-                                    </RadioGroup>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
-                        {showNumMore && <FormField control={control} name={`appointments.${index}.num_more_dogs`} render={({ field: f }) => (
-                            <FormItem><FormLabel>Total Dogs</FormLabel><FormControl><Input type="number" placeholder="e.g. 4" {...f} onChange={e=>f.onChange(+e.target.value)} className="w-24 bg-background"/></FormControl><FormMessage /></FormItem>
-                        )} />}
                         
-                        <FormField control={control} name={`appointments.${index}.yard_size`} render={({ field: f }) => (
-                            <FormItem className="space-y-1 md:col-span-2 lg:col-span-1">
-                                <FormLabel>Yard Size</FormLabel>
-                                <FormControl>
-                                    <RadioGroup onValueChange={f.onChange} defaultValue={f.value} className="flex flex-wrap gap-x-4 gap-y-2">
-                                        <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="small" /></FormControl><FormLabel className="font-normal">S</FormLabel></FormItem>
-                                        <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="medium" /></FormControl><FormLabel className="font-normal">M</FormLabel></FormItem>
-                                        <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="large" /></FormControl><FormLabel className="font-normal">L</FormLabel></FormItem>
-                                        <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="extralarge" /></FormControl><FormLabel className="font-normal">XL</FormLabel></FormItem>
-                                    </RadioGroup>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
-                        {showAcres && <FormField control={control} name={`appointments.${index}.acres_extralarge`} render={({ field: f }) => (
-                            <FormItem><FormLabel>Acreage</FormLabel><FormControl><Input type="number" step="0.1" placeholder="e.g. 1.5" {...f} onChange={e=>f.onChange(parseFloat(e.target.value))} className="w-24 bg-background"/></FormControl><FormMessage /></FormItem>
-                        )} />}
-
-                        <FormField control={control} name={`appointments.${index}.accessibility`} render={({ field: f }) => (
-                             <FormItem className="space-y-1">
-                                <FormLabel>Accessibility</FormLabel>
-                                <FormControl>
-                                    <RadioGroup onValueChange={f.onChange} defaultValue={f.value} className="flex gap-x-4">
-                                        <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="easy" /></FormControl><FormLabel className="font-normal">Easy</FormLabel></FormItem>
-                                        <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="minor" /></FormControl><FormLabel className="font-normal">Minor</FormLabel></FormItem>
-                                        <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="difficult" /></FormControl><FormLabel className="font-normal">Difficult</FormLabel></FormItem>
-                                    </RadioGroup>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
-                        
-                         <FormField control={control} name={`appointments.${index}.visit_type`} render={({ field: f }) => (
-                            <FormItem className="md:col-span-2 lg:col-span-1">
-                                <FormLabel>Visit Type</FormLabel>
-                                 <Select onValueChange={f.onChange} defaultValue={f.value}>
-                                    <FormControl><SelectTrigger className="bg-background"><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="onetime">One-time</SelectItem>
-                                        <SelectItem value="initial_recurring">Initial Recurring</SelectItem>
-                                        <SelectItem value="regular_recurring">Regular Recurring</SelectItem>
-                                        <SelectItem value="second_weekly">Second Weekly</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
-
-                        {showRecurring && <FormField control={control} name={`appointments.${index}.recurring_freq`} render={({ field: f }) => (
-                            <FormItem>
-                                <FormLabel>Recurring Freq.</FormLabel>
-                                <Select onValueChange={f.onChange} defaultValue={f.value}>
-                                    <FormControl><SelectTrigger className="bg-background"><SelectValue placeholder="Select frequency" /></SelectTrigger></FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="weekly">Weekly</SelectItem>
-                                        <SelectItem value="biweekly">Bi-weekly</SelectItem>
-                                        <SelectItem value="monthly">Monthly</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )} />}
-
-                        {showInitial && <FormField control={control} name={`appointments.${index}.initial_condition`} render={({ field: f }) => (
-                            <FormItem>
-                                <FormLabel>Initial Condition</FormLabel>
-                                 <Select onValueChange={f.onChange} defaultValue={f.value}>
-                                     <FormControl><SelectTrigger className="bg-background"><SelectValue placeholder="Select condition" /></SelectTrigger></FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="recent">Recent</SelectItem>
-                                        <SelectItem value="moderate">Moderate</SelectItem>
-                                        <SelectItem value="heavy">Heavy</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )} />}
-                        {showHeavy && <FormField control={control} name={`appointments.${index}.heavy_points`} render={({ field: f }) => (
-                            <FormItem><FormLabel>Heavy Pts (6-10)</FormLabel><FormControl><Input type="number" min="6" max="10" {...f} onChange={e=>f.onChange(+e.target.value)} className="w-24 bg-background"/></FormControl><FormMessage /></FormItem>
-                        )} />}
-
-                        <div className="md:col-span-2 lg:col-span-3 space-y-2 pt-2">
-                            <Label>Add-ons for this stop:</Label>
-                            <div className="flex gap-4">
-                            <FormField control={control} name={`appointments.${index}.addon_deodorizing`} render={({ field: f }) => (
-                                <FormItem className="flex items-center space-x-2"><FormControl><Checkbox checked={f.value} onCheckedChange={f.onChange} /></FormControl><FormLabel className="font-normal">Deodorizing</FormLabel></FormItem>
-                            )} />
-                            <FormField control={control} name={`appointments.${index}.addon_disposal`} render={({ field: f }) => (
-                                <FormItem className="flex items-center space-x-2"><FormControl><Checkbox checked={f.value} onCheckedChange={f.onChange} /></FormControl><FormLabel className="font-normal">Waste Disposal</FormLabel></FormItem>
-                            )} />
-                            </div>
-                        </div>
-                        
-                        {/* Service Time (Read-only, auto-calculated) */}
+                        {/* Service Time (Read-only, auto-calculated for jobs, fixed for breaks) */}
                         <FormField
                           control={control}
                           name={`appointments.${index}.serviceTime`}
                           render={({ field: f }) => (
-                            <FormItem>
+                            <FormItem className="lg:col-start-3">
                               <FormLabel>Est. Total Stop Time (mins)</FormLabel>
                               <FormControl>
                                 <Input
@@ -445,34 +406,144 @@ export default function SmartRoutesPage() {
                                   className="bg-background border-dashed"
                                 />
                               </FormControl>
-                              <FormDescription>Incl. {SETUP_CLEANUP_TIME_MINUTES} min setup/cleanup.</FormDescription>
+                              {!isBreak && <FormDescription>Incl. {SETUP_CLEANUP_TIME_MINUTES} min setup/cleanup.</FormDescription>}
+                              {isBreak && <FormDescription>Fixed break duration.</FormDescription>}
                               <FormMessage />
                             </FormItem>
                           )}
                         />
+
+                        {!isBreak && (
+                          <>
+                            {/* Point Calculation Fields - Conditionally Rendered */}
+                            <FormField control={control} name={`appointments.${index}.dogs`} render={({ field: f }) => (
+                                <FormItem className="space-y-1 md:col-span-1">
+                                    <FormLabel>Number of Dogs</FormLabel>
+                                    <FormControl>
+                                        <RadioGroup onValueChange={f.onChange} defaultValue={f.value} className="flex flex-wrap gap-x-4 gap-y-2">
+                                            <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="1" /></FormControl><FormLabel className="font-normal">1</FormLabel></FormItem>
+                                            <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="2" /></FormControl><FormLabel className="font-normal">2</FormLabel></FormItem>
+                                            <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="3" /></FormControl><FormLabel className="font-normal">3</FormLabel></FormItem>
+                                            <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="more" /></FormControl><FormLabel className="font-normal">More</FormLabel></FormItem>
+                                        </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                            {showNumMore && <FormField control={control} name={`appointments.${index}.num_more_dogs`} render={({ field: f }) => (
+                                <FormItem><FormLabel>Total Dogs</FormLabel><FormControl><Input type="number" placeholder="e.g. 4" {...f} onChange={e=>f.onChange(+e.target.value)} className="w-24 bg-background"/></FormControl><FormMessage /></FormItem>
+                            )} />}
+                            
+                            <FormField control={control} name={`appointments.${index}.yard_size`} render={({ field: f }) => (
+                                <FormItem className="space-y-1 md:col-span-1">
+                                    <FormLabel>Yard Size</FormLabel>
+                                    <FormControl>
+                                        <RadioGroup onValueChange={f.onChange} defaultValue={f.value} className="flex flex-wrap gap-x-4 gap-y-2">
+                                            <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="small" /></FormControl><FormLabel className="font-normal">S</FormLabel></FormItem>
+                                            <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="medium" /></FormControl><FormLabel className="font-normal">M</FormLabel></FormItem>
+                                            <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="large" /></FormControl><FormLabel className="font-normal">L</FormLabel></FormItem>
+                                            <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="extralarge" /></FormControl><FormLabel className="font-normal">XL</FormLabel></FormItem>
+                                        </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                            {showAcres && <FormField control={control} name={`appointments.${index}.acres_extralarge`} render={({ field: f }) => (
+                                <FormItem><FormLabel>Acreage</FormLabel><FormControl><Input type="number" step="0.1" placeholder="e.g. 1.5" {...f} onChange={e=>f.onChange(parseFloat(e.target.value))} className="w-24 bg-background"/></FormControl><FormMessage /></FormItem>
+                            )} />}
+
+                            <FormField control={control} name={`appointments.${index}.accessibility`} render={({ field: f }) => (
+                                <FormItem className="space-y-1">
+                                    <FormLabel>Accessibility</FormLabel>
+                                    <FormControl>
+                                        <RadioGroup onValueChange={f.onChange} defaultValue={f.value} className="flex gap-x-4">
+                                            <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="easy" /></FormControl><FormLabel className="font-normal">Easy</FormLabel></FormItem>
+                                            <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="minor" /></FormControl><FormLabel className="font-normal">Minor</FormLabel></FormItem>
+                                            <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="difficult" /></FormControl><FormLabel className="font-normal">Difficult</FormLabel></FormItem>
+                                        </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                            
+                            <FormField control={control} name={`appointments.${index}.visit_type`} render={({ field: f }) => (
+                                <FormItem className="md:col-span-1">
+                                    <FormLabel>Visit Type</FormLabel>
+                                    <Select onValueChange={f.onChange} defaultValue={f.value}>
+                                        <FormControl><SelectTrigger className="bg-background"><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="onetime">One-time</SelectItem>
+                                            <SelectItem value="initial_recurring">Initial Recurring</SelectItem>
+                                            <SelectItem value="regular_recurring">Regular Recurring</SelectItem>
+                                            <SelectItem value="second_weekly">Second Weekly</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+
+                            {showRecurring && <FormField control={control} name={`appointments.${index}.recurring_freq`} render={({ field: f }) => (
+                                <FormItem>
+                                    <FormLabel>Recurring Freq.</FormLabel>
+                                    <Select onValueChange={f.onChange} defaultValue={f.value}>
+                                        <FormControl><SelectTrigger className="bg-background"><SelectValue placeholder="Select frequency" /></SelectTrigger></FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="weekly">Weekly</SelectItem>
+                                            <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                                            <SelectItem value="monthly">Monthly</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />}
+
+                            {showInitial && <FormField control={control} name={`appointments.${index}.initial_condition`} render={({ field: f }) => (
+                                <FormItem>
+                                    <FormLabel>Initial Condition</FormLabel>
+                                    <Select onValueChange={f.onChange} defaultValue={f.value}>
+                                        <FormControl><SelectTrigger className="bg-background"><SelectValue placeholder="Select condition" /></SelectTrigger></FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="recent">Recent</SelectItem>
+                                            <SelectItem value="moderate">Moderate</SelectItem>
+                                            <SelectItem value="heavy">Heavy</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />}
+                            {showHeavy && <FormField control={control} name={`appointments.${index}.heavy_points`} render={({ field: f }) => (
+                                <FormItem><FormLabel>Heavy Pts (6-10)</FormLabel><FormControl><Input type="number" min="6" max="10" {...f} onChange={e=>f.onChange(+e.target.value)} className="w-24 bg-background"/></FormControl><FormMessage /></FormItem>
+                            )} />}
+
+                            <div className="md:col-span-3 space-y-2 pt-2">
+                                <Label>Add-ons for this stop:</Label>
+                                <div className="flex gap-4">
+                                <FormField control={control} name={`appointments.${index}.addon_deodorizing`} render={({ field: f }) => (
+                                    <FormItem className="flex items-center space-x-2"><FormControl><Checkbox checked={f.value} onCheckedChange={f.onChange} /></FormControl><FormLabel className="font-normal">Deodorizing</FormLabel></FormItem>
+                                )} />
+                                <FormField control={control} name={`appointments.${index}.addon_disposal`} render={({ field: f }) => (
+                                    <FormItem className="flex items-center space-x-2"><FormControl><Checkbox checked={f.value} onCheckedChange={f.onChange} /></FormControl><FormLabel className="font-normal">Waste Disposal</FormLabel></FormItem>
+                                )} />
+                                </div>
+                            </div>
+                          </>
+                        )}
                       </div>
-                      {fields.length > 1 && (
-                        <Button type="button" variant="destructive" size="sm" onClick={() => remove(index)} className="mt-4">
-                          <Trash2 className="mr-2 h-4 w-4" /> Remove Appointment
-                        </Button>
-                      )}
+                      
+                      <Button type="button" variant="destructive" size="sm" onClick={() => remove(index)} className="mt-4">
+                        <Trash2 className="mr-2 h-4 w-4" /> Remove Stop
+                      </Button>
                     </Card>
                   );
                 })}
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => append(defaultAppointmentValues)}
-              >
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Appointment
-              </Button>
+              
               {errors.appointments && typeof errors.appointments === 'object' && !Array.isArray(errors.appointments) && (
                 <p className="text-sm text-destructive mt-1">{errors.appointments.message}</p>
               )}
             </CardContent>
             <CardFooter>
-              <Button type="submit" className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading}>
+              <Button type="submit" className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading || fields.length === 0}>
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RouteIcon className="mr-2 h-4 w-4" />}
                 {isLoading ? 'Optimizing...' : 'Generate Optimized Route'}
               </Button>
