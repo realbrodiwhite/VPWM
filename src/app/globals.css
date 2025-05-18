@@ -14,7 +14,7 @@
     --popover-foreground: 0 0% 10%; /* Very Dark Grey/Near Black */
 
     --primary: 134 29% 30%; /* Forest green */
-    --primary-foreground: 0 0% 10%; /* Black for text on primary */
+    --primary-foreground: 0 0% 98%; /* Very Light Grey/Near White for text on primary */
 
     --secondary: 35 30% 75%; /* Lighter, less saturated brown/grey */
     --secondary-foreground: 0 0% 10%; /* Black for text on secondary */
@@ -62,7 +62,7 @@
     --popover-foreground: 0 0% 95%; /* Very Light Grey/Near White */
 
     --primary: 134 35% 55%; /* Lighter, more vibrant Forest Green for dark mode */
-    --primary-foreground: 0 0% 95%; /* White for text on primary */
+    --primary-foreground: 0 0% 10%; /* Near Black for text on lighter primary in dark mode */
 
     --secondary: 30 20% 30%; /* Muted, darker brown */
     --secondary-foreground: 0 0% 95%; /* White for text on secondary */

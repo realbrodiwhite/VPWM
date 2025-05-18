@@ -39,7 +39,7 @@ const pricingPlans = [
 
 export default function PricingSection() {
   return (
-    <section id="pricing" className="py-16 md:py-24 bg-background">
+    <section id="pricing" className="py-16 md:py-24 bg-muted">
       <div className="container">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-primary">Simple, Transparent Pricing</h2>
@@ -51,7 +51,7 @@ export default function PricingSection() {
           {pricingPlans.map((plan) => (
             <Card
               key={plan.name}
-              className={`flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 ${
+              className={`flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground ${
                 plan.popular ? "border-2 border-accent ring-2 ring-accent/50 relative" : ""
               }`}
             >
@@ -69,14 +69,14 @@ export default function PricingSection() {
                   <span className="text-4xl font-bold text-accent">{plan.price}</span>
                   <span className="text-muted-foreground">/{plan.frequency}</span>
                 </div>
-                <CardDescription className="text-center h-12">{plan.description}</CardDescription>
+                <CardDescription className="text-center h-12 text-card-foreground/80">{plan.description}</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow">
                 <ul className="space-y-3">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2">
                       <Check className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
-                      <span className="text-foreground/90">{feature}</span>
+                      <span className="text-card-foreground/90">{feature}</span>
                     </li>
                   ))}
                 </ul>

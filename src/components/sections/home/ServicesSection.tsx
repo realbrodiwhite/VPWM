@@ -37,17 +37,17 @@ const services = [
 
 export default function ServicesSection() {
   return (
-    <section id="services" className="py-16 md:py-24 bg-secondary/20">
+    <section id="services" className="py-16 md:py-24 bg-primary">
       <div className="container">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary">Our Pet Waste Removal Services</h2>
-          <p className="mt-4 text-lg text-foreground/80 max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground">Our Pet Waste Removal Services</h2>
+          <p className="mt-4 text-lg text-primary-foreground/80 max-w-2xl mx-auto">
             From yards to litter boxes, we offer flexible and reliable solutions for a poop-free environment, inside and out.
           </p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {services.map((service) => (
-            <Card key={service.title} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
+            <Card key={service.title} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out bg-card text-card-foreground">
               <div className="relative h-48 w-full">
                 <Image src={service.image} alt={service.title} layout="fill" objectFit="cover" data-ai-hint={service.imageHint} />
               </div>
@@ -56,7 +56,7 @@ export default function ServicesSection() {
                   {service.icon}
                   <CardTitle className="text-2xl text-primary">{service.title}</CardTitle>
                 </div>
-                <CardDescription>{service.description}</CardDescription>
+                <CardDescription className="text-muted-foreground">{service.description}</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow">
                 <p className="text-2xl font-bold text-accent mb-4">{service.price}</p>

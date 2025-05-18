@@ -26,7 +26,6 @@ export default function ContactSection() {
   });
 
   const onSubmit: SubmitHandler<ContactFormInputs> = async (data) => {
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     console.log(data);
     toast({
@@ -38,64 +37,64 @@ export default function ContactSection() {
   };
 
   return (
-    <section id="contact" className="min-h-screen flex items-center bg-secondary/20">
+    <section id="contact" className="min-h-screen flex items-center bg-accent">
       <div className="container py-16 md:py-24">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary">Get In Touch</h2>
-          <p className="mt-4 text-lg text-foreground/80 max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-accent-foreground">Get In Touch</h2>
+          <p className="mt-4 text-lg text-accent-foreground/80 max-w-2xl mx-auto">
             Have questions or want to schedule a service? Contact us today!
           </p>
         </div>
         <div className="grid md:grid-cols-2 gap-12 items-start">
-          <Card className="shadow-lg">
+          <Card className="shadow-lg bg-card text-card-foreground">
             <CardHeader>
               <CardTitle className="text-2xl text-primary">Send Us a Message</CardTitle>
-              <CardDescription>We typically respond within 24 hours.</CardDescription>
+              <CardDescription className="text-muted-foreground">We typically respond within 24 hours.</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div>
-                  <Label htmlFor="name">Full Name</Label>
+                  <Label htmlFor="name" className="text-card-foreground">Full Name</Label>
                   <Input id="name" {...register("name")} placeholder="John Doe" className="mt-1" />
                   {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="email" className="text-card-foreground">Email Address</Label>
                   <Input id="email" type="email" {...register("email")} placeholder="you@example.com" className="mt-1" />
                   {errors.email && <p className="text-sm text-destructive mt-1">{errors.email.message}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="message">Message</Label>
+                  <Label htmlFor="message" className="text-card-foreground">Message</Label>
                   <Textarea id="message" {...register("message")} placeholder="Your inquiry..." className="mt-1 min-h-[120px]" />
                   {errors.message && <p className="text-sm text-destructive mt-1">{errors.message.message}</p>}
                 </div>
-                <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isSubmitting}>
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isSubmitting}>
                   {isSubmitting ? "Sending..." : "Send Message"}
                 </Button>
               </form>
             </CardContent>
           </Card>
           <div className="space-y-8 pt-8 md:pt-0">
-            <h3 className="text-2xl font-semibold text-primary">Contact Information</h3>
+            <h3 className="text-2xl font-semibold text-accent-foreground">Contact Information</h3>
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <Mail className="w-6 h-6 text-accent" />
-                <a href="mailto:info@valleypetwaste.com" className="text-foreground/90 hover:text-primary">info@valleypetwaste.com</a>
+                <Mail className="w-6 h-6 text-accent-foreground" />
+                <a href="mailto:info@valleypetwaste.com" className="text-accent-foreground/90 hover:text-accent-foreground">info@valleypetwaste.com</a>
               </div>
               <div className="flex items-center gap-3">
-                <Phone className="w-6 h-6 text-accent" />
-                <a href="tel:+15551234567" className="text-foreground/90 hover:text-primary">(555) 123-4567</a>
+                <Phone className="w-6 h-6 text-accent-foreground" />
+                <a href="tel:+15551234567" className="text-accent-foreground/90 hover:text-accent-foreground">(555) 123-4567</a>
               </div>
               <div className="flex items-center gap-3">
-                <MapPin className="w-6 h-6 text-accent" />
-                <p className="text-foreground/90">123 Clean Street, Petville, CA 90210</p>
+                <MapPin className="w-6 h-6 text-accent-foreground" />
+                <p className="text-accent-foreground/90">123 Clean Street, Petville, CA 90210</p>
               </div>
             </div>
             <div className="mt-6">
-                <h4 className="text-lg font-semibold text-primary mb-2">Business Hours</h4>
-                <p className="text-foreground/90">Monday - Friday: 8:00 AM - 5:00 PM</p>
-                <p className="text-foreground/90">Saturday: 9:00 AM - 1:00 PM</p>
-                <p className="text-foreground/90">Sunday: Closed</p>
+                <h4 className="text-lg font-semibold text-accent-foreground mb-2">Business Hours</h4>
+                <p className="text-accent-foreground/90">Monday - Friday: 8:00 AM - 5:00 PM</p>
+                <p className="text-accent-foreground/90">Saturday: 9:00 AM - 1:00 PM</p>
+                <p className="text-accent-foreground/90">Sunday: Closed</p>
             </div>
           </div>
         </div>
@@ -103,4 +102,3 @@ export default function ContactSection() {
     </section>
   );
 }
-

@@ -5,7 +5,7 @@ import Image from "next/image";
 
 export default function HeroSection() {
   return (
-    <section className="min-h-screen flex items-center bg-gradient-to-br from-background to-secondary/30">
+    <section className="min-h-screen flex items-center bg-secondary/30">
       <div className="container grid md:grid-cols-2 gap-8 items-center py-12 md:py-16">
         <div className="space-y-6 text-center md:text-left">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-primary">

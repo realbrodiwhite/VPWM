@@ -4,7 +4,7 @@ import { Dog } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="border-t bg-background/80">
+    <footer className="border-t bg-muted/50">
       <div className="container py-8 text-center text-sm text-muted-foreground">
         <div className="flex flex-col sm:flex-row justify-between items-center">
             <div className="flex items-center gap-2 mb-4 sm:mb-0">
