@@ -15,19 +15,19 @@ const pointsFactors = [
 
 export default function PointsSystemSection() {
   return (
-    <section id="points-system" className="py-16 md:py-24 bg-muted">
+    <section id="points-system" className="py-16 md:py-24 bg-accent"> {/* Changed to bg-accent */}
       <div className="container">
         <div className="text-center mb-12">
           <div className="flex justify-center mb-4">
-            <Calculator className="w-12 h-12 text-primary" />
+            <Calculator className="w-12 h-12 text-accent-foreground" /> {/* Changed icon color */}
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-primary">Understanding Our Points System</h2>
-          <p className="mt-4 text-lg text-foreground/80 max-w-3xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-accent-foreground">Understanding Our Points System</h2> {/* Changed text color */}
+          <p className="mt-4 text-lg text-accent-foreground/80 max-w-3xl mx-auto"> {/* Changed text color */}
             Our transparent points system determines service effort, ensuring fair and consistent pricing. More complex jobs accrue more points.
           </p>
         </div>
 
-        <div> 
+        <div>
           <Card className="shadow-xl bg-card text-card-foreground">
             <CardHeader>
               <CardTitle className="text-2xl text-primary flex items-center gap-2">

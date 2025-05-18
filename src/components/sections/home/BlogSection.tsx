@@ -31,14 +31,14 @@ const blogPosts = [
 
 export default function BlogSection() {
   return (
-    <section id="blog" className="py-16 md:py-24 bg-accent">
+    <section id="blog" className="py-16 md:py-24 bg-secondary/30"> {/* Changed to bg-secondary/30 */}
       <div className="container">
         <div className="text-center mb-12">
            <div className="flex justify-center mb-4">
-            <Newspaper className="w-12 h-12 text-accent-foreground" />
+            <Newspaper className="w-12 h-12 text-primary" /> {/* Changed icon color */}
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-accent-foreground">Tips & Updates From Our Blog</h2>
-          <p className="mt-4 text-lg text-accent-foreground/80 max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-primary">Tips & Updates From Our Blog</h2> {/* Changed text color */}
+          <p className="mt-4 text-lg text-foreground/80 max-w-2xl mx-auto"> {/* Changed text color */}
             Stay informed with our latest articles on pet care, yard maintenance, and company news.
           </p>
         </div>
@@ -53,7 +53,6 @@ export default function BlogSection() {
                 <CardDescription className="text-muted-foreground h-12 overflow-hidden text-ellipsis">{post.description}</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow">
-                {/* Additional content can go here if needed */}
               </CardContent>
               <CardFooter>
                 <Button
@@ -69,7 +68,7 @@ export default function BlogSection() {
             <Button
               asChild
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-md" /* Changed button color */
             ><Link href="/blog">View All Posts</Link></Button>
         </div>
       </div>
