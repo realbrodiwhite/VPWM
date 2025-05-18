@@ -8,7 +8,7 @@ const pointsFactors = [
   "Yard Accessibility & Terrain",
   "Visit Frequency (or One-Time)",
   "Initial Cleanup Condition (for first visits)",
-  "Optional Add-on Services"
+  "Optional Add-on Services (like deodorizing or off-site disposal)"
 ];
 
 export default function PointsSystemSection() {
@@ -25,28 +25,33 @@ export default function PointsSystemSection() {
           </p>
         </div>
 
-        <div className="max-w-2xl mx-auto">
-          <Card className="shadow-lg bg-card text-card-foreground">
+        <div className="max-w-4xl mx-auto"> {/* Increased max-width from max-w-2xl */}
+          <Card className="shadow-xl bg-card text-card-foreground"> {/* Added shadow-xl for consistency */}
             <CardHeader>
               <CardTitle className="text-2xl text-primary flex items-center gap-2">
                 <PawPrint className="w-7 h-7" /> How It Works
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6 text-base"> {/* Added text-base and increased space-y */}
               <p className="text-card-foreground/90">
-                We assess several factors to assign points for each cleanup visit. This allows us to tailor the service price to the specific needs of your property and pets.
+                Our unique Points System is designed with transparency and fairness at its core. Instead of flat rates that don't always account for the unique aspects of your situation, we assess several key factors to determine the specific effort required for each service. This means you only pay for the work needed, ensuring a personalized and equitable price for every cleanup.
               </p>
-              <h4 className="font-semibold text-primary">Key Factors Include:</h4>
-              <ul className="space-y-2">
-                {pointsFactors.map((factor) => (
-                  <li key={factor} className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
-                    <span className="text-card-foreground/80">{factor}</span>
-                  </li>
-                ))}
-              </ul>
-               <p className="text-sm text-muted-foreground pt-4">
-                Each factor contributes points to a total score for the visit. This score then corresponds to a specific pricing tier.
+              <div>
+                <h4 className="font-semibold text-lg text-primary mb-3">Key Factors We Consider:</h4>
+                <ul className="space-y-2 pl-2">
+                  {pointsFactors.map((factor) => (
+                    <li key={factor} className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
+                      <span className="text-card-foreground/80">{factor}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+               <p className="text-card-foreground/90">
+                Each selected option within these factors contributes a set number of points to a total score for your requested visit. The higher the complexity (e.g., more dogs, larger yard, heavier initial cleanup), the more points are accrued. This total point score then directly corresponds to one of our clear pricing tiers. You can see this system in action and get an instant estimate on our 'Get Quote' page. This way, you understand exactly how your service cost is calculated before we even arrive.
+              </p>
+               <p className="text-sm text-muted-foreground pt-4 border-t mt-6">
+                This system ensures you receive a fair price tailored to your specific needs, and it allows us to accurately allocate resources for efficient and thorough service.
               </p>
             </CardContent>
           </Card>
@@ -55,3 +60,4 @@ export default function PointsSystemSection() {
     </section>
   );
 }
+
