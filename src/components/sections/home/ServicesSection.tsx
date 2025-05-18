@@ -13,7 +13,7 @@ const services = [
     features: ["Complete yard scooping", "Patio & deck cleaning", "Waste hauled away", "Regular yard sanitization (optional)"],
     image: "https://placehold.co/400x300.png",
     imageHint: "clean backyard",
-    icon: <Sun className="w-8 h-8 text-primary" />
+    icon: <Sun className="w-8 h-8 text-primary" /> // Icon color on card, primary is fine
   },
   {
     title: "Indoor Cleanup",
@@ -22,7 +22,7 @@ const services = [
     features: ["Litter box scooping & refresh", "Odor control for indoor spaces", "Pet accident spot cleaning", "Safe for pets & family"],
     image: "https://placehold.co/400x300.png",
     imageHint: "clean room cat",
-    icon: <Home className="w-8 h-8 text-primary" />
+    icon: <Home className="w-8 h-8 text-primary" /> // Icon color on card, primary is fine
   },
   {
     title: "Complete Care Package",
@@ -31,17 +31,17 @@ const services = [
     features: ["All Outdoor & Indoor services", "Discounted package rate", "Flexible scheduling", "Top priority service"],
     image: "https://placehold.co/400x300.png",
     imageHint: "happy pet owner",
-    icon: <ShieldCheck className="w-8 h-8 text-primary" />
+    icon: <ShieldCheck className="w-8 h-8 text-primary" /> // Icon color on card, primary is fine
   },
 ];
 
 export default function ServicesSection() {
   return (
-    <section id="services" className="py-16 md:py-24 bg-primary">
+    <section id="services" className="py-16 md:py-24 bg-accent"> {/* Changed to bg-accent */}
       <div className="container">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground">Our Pet Waste Removal Services</h2>
-          <p className="mt-4 text-lg text-primary-foreground/80 max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-accent-foreground">Our Pet Waste Removal Services</h2> {/* Changed text color */}
+          <p className="mt-4 text-lg text-accent-foreground/80 max-w-2xl mx-auto"> {/* Changed text color */}
             From yards to litter boxes, we offer flexible and reliable solutions for a poop-free environment, inside and out.
           </p>
         </div>
@@ -59,7 +59,7 @@ export default function ServicesSection() {
                 <CardDescription className="text-muted-foreground">{service.description}</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow">
-                <p className="text-2xl font-bold text-accent mb-4">{service.price}</p>
+                <p className="text-2xl font-bold text-primary mb-4">{service.price}</p> {/* Changed price to primary for better contrast on card */}
                 <ul className="space-y-2">
                   {service.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-foreground/90">
@@ -81,3 +81,4 @@ export default function ServicesSection() {
     </section>
   );
 }
+

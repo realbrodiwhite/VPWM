@@ -37,11 +37,11 @@ export default function ContactSection() {
   };
 
   return (
-    <section id="contact" className="min-h-screen flex items-center bg-accent">
+    <section id="contact" className="min-h-screen flex items-center bg-primary"> {/* Changed to bg-primary */}
       <div className="container py-16 md:py-24">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-accent-foreground">Get In Touch</h2>
-          <p className="mt-4 text-lg text-accent-foreground/80 max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground">Get In Touch</h2> {/* Changed text color */}
+          <p className="mt-4 text-lg text-primary-foreground/80 max-w-2xl mx-auto"> {/* Changed text color */}
             Have questions or want to schedule a service? Contact us today!
           </p>
         </div>
@@ -68,33 +68,33 @@ export default function ContactSection() {
                   <Textarea id="message" {...register("message")} placeholder="Your inquiry..." className="mt-1 min-h-[120px]" />
                   {errors.message && <p className="text-sm text-destructive mt-1">{errors.message.message}</p>}
                 </div>
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isSubmitting}>
+                <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isSubmitting}> {/* Button on card to Accent */}
                   {isSubmitting ? "Sending..." : "Send Message"}
                 </Button>
               </form>
             </CardContent>
           </Card>
           <div className="space-y-8 pt-8 md:pt-0">
-            <h3 className="text-2xl font-semibold text-accent-foreground">Contact Information</h3>
+            <h3 className="text-2xl font-semibold text-primary-foreground">Contact Information</h3> {/* Changed text color */}
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <Mail className="w-6 h-6 text-accent-foreground" />
-                <a href="mailto:info@valleypetwaste.com" className="text-accent-foreground/90 hover:text-accent-foreground">info@valleypetwaste.com</a>
+                <Mail className="w-6 h-6 text-primary-foreground" /> {/* Changed icon color */}
+                <a href="mailto:info@valleypetwaste.com" className="text-primary-foreground/90 hover:text-primary-foreground">info@valleypetwaste.com</a> {/* Changed text color */}
               </div>
               <div className="flex items-center gap-3">
-                <Phone className="w-6 h-6 text-accent-foreground" />
-                <a href="tel:+15551234567" className="text-accent-foreground/90 hover:text-accent-foreground">(555) 123-4567</a>
+                <Phone className="w-6 h-6 text-primary-foreground" /> {/* Changed icon color */}
+                <a href="tel:+15551234567" className="text-primary-foreground/90 hover:text-primary-foreground">(555) 123-4567</a> {/* Changed text color */}
               </div>
               <div className="flex items-center gap-3">
-                <MapPin className="w-6 h-6 text-accent-foreground" />
-                <p className="text-accent-foreground/90">123 Clean Street, Petville, CA 90210</p>
+                <MapPin className="w-6 h-6 text-primary-foreground" /> {/* Changed icon color */}
+                <p className="text-primary-foreground/90">123 Clean Street, Petville, CA 90210</p> {/* Changed text color */}
               </div>
             </div>
             <div className="mt-6">
-                <h4 className="text-lg font-semibold text-accent-foreground mb-2">Business Hours</h4>
-                <p className="text-accent-foreground/90">Monday - Friday: 8:00 AM - 5:00 PM</p>
-                <p className="text-accent-foreground/90">Saturday: 9:00 AM - 1:00 PM</p>
-                <p className="text-accent-foreground/90">Sunday: Closed</p>
+                <h4 className="text-lg font-semibold text-primary-foreground mb-2">Business Hours</h4> {/* Changed text color */}
+                <p className="text-primary-foreground/90">Monday - Friday: 8:00 AM - 5:00 PM</p> {/* Changed text color */}
+                <p className="text-primary-foreground/90">Saturday: 9:00 AM - 1:00 PM</p> {/* Changed text color */}
+                <p className="text-primary-foreground/90">Sunday: Closed</p> {/* Changed text color */}
             </div>
           </div>
         </div>
@@ -102,3 +102,4 @@ export default function ContactSection() {
     </section>
   );
 }
+
