@@ -12,13 +12,13 @@ export default function HeroSection() {
             Keep Your Yard Clean, Effortlessly.
           </h1>
           <p className="text-lg md:text-xl text-foreground/80">
-            Valley Pet Waste Management offers reliable and professional pet waste removal services so you can enjoy a spotless yard without the hassle.
+            Pet Waste Management offers reliable and professional pet waste removal services so you can enjoy a spotless yard without the hassle.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
             <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-md">
               <Link href="/#services">Our Services</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="shadow-md">
+            <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-md">
               <Link href="/login">Get Started</Link>
             </Button>
           </div>

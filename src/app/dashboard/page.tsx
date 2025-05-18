@@ -90,7 +90,7 @@ export default function CustomerDashboardPage() {
                 <CardContent className="p-6 text-center text-muted-foreground">
                     <CalendarDays className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
                     <p>You have no upcoming services scheduled.</p>
-                    <Button asChild variant="default" className="mt-4">
+                    <Button asChild className="mt-4 bg-accent hover:bg-accent/90 text-accent-foreground">
                         <Link href="/dashboard/book">Book a Service</Link>
                     </Button>
                 </CardContent>
@@ -133,7 +133,7 @@ export default function CustomerDashboardPage() {
             <div className="text-center md:text-left">
               <h3 className="text-2xl font-semibold text-primary">Refer a Friend & Save!</h3>
               <p className="text-foreground/80 mt-2 mb-4">
-                Love our service? Share Valley Pet Waste with a friend and you both get $10 off your next month!
+                Love our service? Share Pet Waste Management with a friend and you both get $10 off your next month!
               </p>
               <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">Get Your Referral Code</Button>
             </div>
