@@ -1,6 +1,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PawPrint, Calculator, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const pointsFactors = [
   "Number of Dogs",
@@ -25,14 +27,15 @@ export default function PointsSystemSection() {
           </p>
         </div>
 
-        <div className="max-w-4xl mx-auto"> {/* Increased max-width from max-w-2xl */}
-          <Card className="shadow-xl bg-card text-card-foreground"> {/* Added shadow-xl for consistency */}
+        {/* Removed max-w-4xl mx-auto from this div to allow card to be wider */}
+        <div> 
+          <Card className="shadow-xl bg-card text-card-foreground">
             <CardHeader>
               <CardTitle className="text-2xl text-primary flex items-center gap-2">
                 <PawPrint className="w-7 h-7" /> How It Works
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 text-base"> {/* Added text-base and increased space-y */}
+            <CardContent className="space-y-6 text-base">
               <p className="text-card-foreground/90">
                 Our unique Points System is designed with transparency and fairness at its core. Instead of flat rates that don't always account for the unique aspects of your situation, we assess several key factors to determine the specific effort required for each service. This means you only pay for the work needed, ensuring a personalized and equitable price for every cleanup.
               </p>
@@ -60,4 +63,3 @@ export default function PointsSystemSection() {
     </section>
   );
 }
-
