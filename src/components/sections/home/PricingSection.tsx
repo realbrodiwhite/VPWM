@@ -1,36 +1,39 @@
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Dog, Zap } from "lucide-react";
+import { Check, Sun, Home, ShieldCheck, Zap } from "lucide-react";
 import Link from "next/link";
 
 const pricingPlans = [
   {
-    name: "Basic Pup",
-    price: "$45",
+    name: "Outdoor Oasis Weekly",
+    price: "$50",
     frequency: "month",
-    description: "1 dog, weekly visits. Keep your yard consistently clean.",
-    features: ["1 Dog", "Weekly Visits (4-5/month)", "Eco-Friendly Disposal", "Satisfaction Guaranteed"],
+    description: "Weekly outdoor cleanup for 1 dog. Enjoy a pristine yard all month long.",
+    features: ["1 Dog Included", "Weekly Outdoor Visits (4-5/month)", "Thorough Scooping & Waste Haul-Away", "Eco-Friendly Disposal", "Yard Deodorizing (add $10/mo)"],
     popular: false,
-    cta: "Choose Basic Pup",
+    cta: "Choose Outdoor Oasis",
+    icon: <Sun className="w-12 h-12 text-primary" />
   },
   {
-    name: "Popular Pooch",
-    price: "$65",
+    name: "Indoor Fresh Weekly",
+    price: "$40",
     frequency: "month",
-    description: "Up to 2 dogs, weekly visits. Our most chosen plan!",
-    features: ["Up to 2 Dogs", "Weekly Visits (4-5/month)", "Deodorizing Spray (Optional Add-on)", "Eco-Friendly Disposal", "Priority Scheduling", "Satisfaction Guaranteed"],
+    description: "Weekly indoor litter box care. Keep your home smelling fresh.",
+    features: ["Up to 2 Litter Boxes", "Weekly Scooping & Litter Refresh", "Odor Neutralization Treatment", "Waste Disposal", "Safe for Pets & Family"],
+    popular: false,
+    cta: "Choose Indoor Fresh",
+    icon: <Home className="w-12 h-12 text-primary" />
+  },
+  {
+    name: "Total Pet Pamper Weekly",
+    price: "$80",
+    frequency: "month",
+    description: "The all-in-one weekly solution for 1-2 pets, covering both indoor and outdoor needs.",
+    features: ["1-2 Pets (Dogs/Cats)", "Weekly Outdoor Cleanup", "Weekly Indoor Cleanup (up to 2 litter boxes)", "Complimentary Yard OR Litter Deodorizing", "Eco-Friendly Disposal", "Priority Scheduling"],
     popular: true,
-    cta: "Choose Popular Pooch",
-  },
-  {
-    name: "Multi-Dog Manor",
-    price: "$85",
-    frequency: "month",
-    description: "3+ dogs, weekly visits. For the bustling furry family.",
-    features: ["3+ Dogs (custom quote for 5+)", "Weekly Visits (4-5/month)", "Free Deodorizing Spray", "Eco-Friendly Disposal", "Top Priority Scheduling", "Satisfaction Guaranteed"],
-    popular: false,
-    cta: "Choose Multi-Dog",
+    cta: "Choose Total Pamper",
+    icon: <Zap className="w-12 h-12 text-accent" />
   },
 ];
 
@@ -41,7 +44,7 @@ export default function PricingSection() {
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-primary">Simple, Transparent Pricing</h2>
           <p className="mt-4 text-lg text-foreground/80 max-w-2xl mx-auto">
-            No hidden fees, just straightforward plans to fit your needs and budget.
+            No hidden fees, just straightforward plans to fit your indoor, outdoor, or combined pet waste needs.
           </p>
         </div>
         <div className="grid lg:grid-cols-3 gap-8 items-stretch">
@@ -59,9 +62,7 @@ export default function PricingSection() {
               )}
               <CardHeader className="pt-8">
                 <div className="flex justify-center mb-4">
-                  {plan.name === "Basic Pup" && <Dog className="w-12 h-12 text-primary" />}
-                  {plan.name === "Popular Pooch" && <Zap className="w-12 h-12 text-accent" />}
-                  {plan.name === "Multi-Dog Manor" && <Dog className="w-12 h-12 text-primary" />}
+                  {plan.icon}
                 </div>
                 <CardTitle className="text-2xl text-center text-primary">{plan.name}</CardTitle>
                 <div className="text-center">
@@ -89,7 +90,7 @@ export default function PricingSection() {
           ))}
         </div>
         <p className="text-center mt-12 text-muted-foreground">
-          Need a custom plan or one-time cleanup? <Link href="/#contact" className="text-primary hover:underline font-semibold">Contact us</Link> for a personalized quote.
+          Need a custom package, bi-weekly, or one-time cleanup? <Link href="/#contact" className="text-primary hover:underline font-semibold">Contact us</Link> for a personalized quote.
         </p>
       </div>
     </section>

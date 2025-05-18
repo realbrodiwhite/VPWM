@@ -1,34 +1,37 @@
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, CalendarDays, Star } from "lucide-react";
+import { CheckCircle, Sun, Home, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
 const services = [
   {
-    title: "Weekly Cleanup",
-    description: "Regularly scheduled visits to keep your yard consistently clean.",
-    price: "$15/visit",
-    features: ["Once per week", "Thorough scooping", "Waste hauled away"],
+    title: "Outdoor Cleanup",
+    description: "Keep your yard, patio, and dog runs spotless with our thorough outdoor scooping service.",
+    price: "Starts at $15/visit",
+    features: ["Complete yard scooping", "Patio & deck cleaning", "Waste hauled away", "Regular yard sanitization (optional)"],
     image: "https://placehold.co/400x300.png",
-    imageHint: "clean garden"
+    imageHint: "clean backyard",
+    icon: <Sun className="w-8 h-8 text-primary" />
   },
   {
-    title: "Bi-Weekly Cleanup",
-    description: "A popular choice for maintaining a tidy yard with less frequent visits.",
-    price: "$20/visit",
-    features: ["Every two weeks", "Complete yard coverage", "Eco-friendly disposal"],
+    title: "Indoor Cleanup",
+    description: "Fresh and clean indoor spaces with litter box maintenance and accident cleanup.",
+    price: "Starts at $12/visit",
+    features: ["Litter box scooping & refresh", "Odor control for indoor spaces", "Pet accident spot cleaning", "Safe for pets & family"],
     image: "https://placehold.co/400x300.png",
-    imageHint: "suburban yard"
+    imageHint: "clean room cat",
+    icon: <Home className="w-8 h-8 text-primary" />
   },
   {
-    title: "One-Time Cleanup",
-    description: "Perfect for special occasions or when you need an extra hand.",
-    price: "Starts at $50",
-    features: ["Thorough single cleanup", "Ideal for parties or events", "Flexible scheduling"],
+    title: "Complete Care Package",
+    description: "The ultimate solution for both indoor and outdoor pet waste removal. Total peace of mind.",
+    price: "Custom Quote",
+    features: ["All Outdoor & Indoor services", "Discounted package rate", "Flexible scheduling", "Top priority service"],
     image: "https://placehold.co/400x300.png",
-    imageHint: "event setup"
+    imageHint: "happy pet owner",
+    icon: <ShieldCheck className="w-8 h-8 text-primary" />
   },
 ];
 
@@ -39,7 +42,7 @@ export default function ServicesSection() {
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-primary">Our Pet Waste Removal Services</h2>
           <p className="mt-4 text-lg text-foreground/80 max-w-2xl mx-auto">
-            Choose the plan that best suits your needs. We offer flexible and reliable solutions for a poop-free yard.
+            From yards to litter boxes, we offer flexible and reliable solutions for a poop-free environment, inside and out.
           </p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -49,7 +52,10 @@ export default function ServicesSection() {
                 <Image src={service.image} alt={service.title} layout="fill" objectFit="cover" data-ai-hint={service.imageHint} />
               </div>
               <CardHeader>
-                <CardTitle className="text-2xl text-primary">{service.title}</CardTitle>
+                <div className="flex items-center gap-3 mb-2">
+                  {service.icon}
+                  <CardTitle className="text-2xl text-primary">{service.title}</CardTitle>
+                </div>
                 <CardDescription>{service.description}</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow">

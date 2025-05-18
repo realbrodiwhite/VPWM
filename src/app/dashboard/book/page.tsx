@@ -11,13 +11,13 @@ import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarPlus, Dog, Sparkles } from "lucide-react";
+import { CalendarPlus, Sun, Home, ShieldCheck, Sparkles } from "lucide-react"; // Added Sun, Home, ShieldCheck
 import React from "react";
 
 const bookingFormSchema = z.object({
   serviceType: z.string().min(1, { message: "Please select a service type." }),
   date: z.date({ required_error: "Please select a date." }),
-  timeSlot: z.string().optional(), // Assuming time slots might be optional or handled differently
+  timeSlot: z.string().optional(), 
   notes: z.string().optional(),
   numberOfPets: z.coerce.number().min(1, "At least one pet is required.").max(10, "Max 10 pets for online booking."),
 });
@@ -25,10 +25,14 @@ const bookingFormSchema = z.object({
 type BookingFormInputs = z.infer<typeof bookingFormSchema>;
 
 const serviceOptions = [
-  { value: "weekly", label: "Weekly Cleanup", icon: <Dog className="w-4 h-4 mr-2" /> },
-  { value: "biweekly", label: "Bi-Weekly Cleanup", icon: <Dog className="w-4 h-4 mr-2" /> },
-  { value: "onetime", label: "One-Time Cleanup", icon: <Sparkles className="w-4 h-4 mr-2" /> },
-  { value: "deodorizing", label: "Yard Deodorizing Add-on", icon: <Sparkles className="w-4 h-4 mr-2" /> },
+  { value: "outdoor_weekly", label: "Weekly Outdoor Cleanup", icon: <Sun className="w-4 h-4 mr-2" /> },
+  { value: "indoor_weekly", label: "Weekly Indoor Cleanup", icon: <Home className="w-4 h-4 mr-2" /> },
+  { value: "complete_weekly", label: "Weekly Complete Care (Indoor & Outdoor)", icon: <ShieldCheck className="w-4 h-4 mr-2" /> },
+  { value: "outdoor_onetime", label: "One-Time Outdoor Cleanup", icon: <Sun className="w-4 h-4 mr-2 opacity-80" /> },
+  { value: "indoor_onetime", label: "One-Time Indoor Cleanup", icon: <Home className="w-4 h-4 mr-2 opacity-80" /> },
+  { value: "complete_onetime", label: "One-Time Complete Care (Indoor & Outdoor)", icon: <ShieldCheck className="w-4 h-4 mr-2 opacity-80" /> },
+  { value: "deodorizing_outdoor", label: "Yard Deodorizing Add-on", icon: <Sparkles className="w-4 h-4 mr-2" /> },
+  { value: "deodorizing_indoor", label: "Indoor Odor Control Add-on", icon: <Sparkles className="w-4 h-4 mr-2" /> },
 ];
 
 export default function BookServicePage() {
@@ -51,10 +55,11 @@ export default function BookServicePage() {
 
   const onSubmit: SubmitHandler<BookingFormInputs> = async (data) => {
     await new Promise(resolve => setTimeout(resolve, 1000));
+    const selectedService = serviceOptions.find(opt => opt.value === data.serviceType);
     console.log("Booking data:", data);
     toast({
       title: "Service Booked!",
-      description: `Your ${data.serviceType} service for ${data.numberOfPets} pet(s) on ${data.date.toLocaleDateString()} has been scheduled.`,
+      description: `Your ${selectedService?.label || data.serviceType} service for ${data.numberOfPets} pet(s) on ${data.date.toLocaleDateString()} has been scheduled.`,
     });
     reset({ date: new Date(), numberOfPets: 1 });
     setSelectedDate(new Date());
@@ -116,7 +121,7 @@ export default function BookServicePage() {
                   name="notes"
                   control={control}
                   render={({ field }) => (
-                    <Textarea id="notes" placeholder="e.g., Gate code is 1234, be careful of the rose bushes." {...field} className="mt-1 min-h-[100px]" />
+                    <Textarea id="notes" placeholder="e.g., Gate code is 1234, be careful of the rose bushes. We have one cat and one dog." {...field} className="mt-1 min-h-[100px]" />
                   )}
                 />
               </div>
