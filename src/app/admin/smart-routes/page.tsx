@@ -18,6 +18,9 @@ import { suggestOptimizedRoutes, SuggestOptimizedRoutesInput, SuggestOptimizedRo
 import { useToast } from '@/hooks/use-toast';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
+const MIN_BASE_SERVICE_TIME_POINTS_SYSTEM = 15; // Minimum time from points system before overhead
+const SETUP_CLEANUP_TIME_MINUTES = 10; // Combined time for setup before and cleanup after service
+
 // Schema for a single appointment, including point calculation fields
 const appointmentSchema = z.object({
   customerName: z.string().min(1, "Customer name is required"),
@@ -37,7 +40,7 @@ const appointmentSchema = z.object({
   addon_deodorizing: z.boolean().optional(),
   addon_disposal: z.boolean().optional(),
 
-  serviceTime: z.coerce.number().min(5, "Service time must be at least 5 minutes"), 
+  serviceTime: z.coerce.number().min(MIN_BASE_SERVICE_TIME_POINTS_SYSTEM + SETUP_CLEANUP_TIME_MINUTES, `Service time must be at least ${MIN_BASE_SERVICE_TIME_POINTS_SYSTEM + SETUP_CLEANUP_TIME_MINUTES} minutes (incl. setup/cleanup)`), 
 })
 .refine(data => !(data.dogs === 'more' && (data.num_more_dogs === undefined || isNaN(data.num_more_dogs) || data.num_more_dogs < 4)), {
   message: "Please specify the total number of dogs (4 or more).",
@@ -117,11 +120,36 @@ const calculatePointsForAppointment = (data: Partial<AppointmentFormValues>): nu
 };
 
 const convertPointsToTime = (totalPoints: number): number => {
-  // Example: Base 15 mins + 2.5 mins per point. Min 15 mins.
-  const estimatedTime = 15 + (totalPoints * 2.5);
-  return Math.max(15, Math.round(estimatedTime)); // Ensure a minimum time and round it
+  // Base 15 mins + 2.5 mins per point.
+  const pointsBasedTime = MIN_BASE_SERVICE_TIME_POINTS_SYSTEM + (totalPoints * 2.5);
+  // Add fixed setup/cleanup overhead
+  const estimatedTimeWithOverhead = pointsBasedTime + SETUP_CLEANUP_TIME_MINUTES;
+  // Ensure a minimum time (base service time + setup/cleanup) and round it
+  return Math.max(MIN_BASE_SERVICE_TIME_POINTS_SYSTEM + SETUP_CLEANUP_TIME_MINUTES, Math.round(estimatedTimeWithOverhead));
 };
 
+const defaultAppointmentDetails: Omit<AppointmentFormValues, 'customerName' | 'address' | 'priority' | 'serviceTime'> = {
+    dogs: '1', 
+    yard_size: 'small', 
+    accessibility: 'easy', 
+    visit_type: 'regular_recurring', 
+    recurring_freq: 'weekly',
+    num_more_dogs: undefined, 
+    acres_extralarge: undefined, 
+    initial_condition: undefined, 
+    heavy_points: undefined,
+    addon_deodorizing: false, 
+    addon_disposal: false,
+};
+const defaultCalculatedServiceTime = convertPointsToTime(calculatePointsForAppointment(defaultAppointmentDetails));
+
+const defaultAppointmentValues: AppointmentFormValues = {
+    customerName: '', 
+    address: '', 
+    priority: 'medium',
+    ...defaultAppointmentDetails,
+    serviceTime: defaultCalculatedServiceTime 
+};
 
 export default function SmartRoutesPage() {
   const { toast } = useToast();
@@ -134,9 +162,7 @@ export default function SmartRoutesPage() {
     defaultValues: {
       currentLocation: '',
       appointments: [{ 
-        customerName: '', address: '', priority: 'medium',
-        dogs: '1', yard_size: 'small', accessibility: 'easy', visit_type: 'regular_recurring', recurring_freq: 'weekly',
-        addon_deodorizing: false, addon_disposal: false, serviceTime: 15 
+        ...defaultAppointmentValues
       }],
     },
     mode: 'onChange', // Important for live updates
@@ -185,7 +211,7 @@ export default function SmartRoutesPage() {
       setRouteResults(result);
       toast({
         title: "Route Optimized!",
-        description: "AI has generated an optimized route.",
+        description: "AI has generated an optimized route. Travel times between stops are estimated by the AI. For breaks, consider adding a manual 'Break' appointment with a specific duration.",
       });
     } catch (e) {
       console.error("Error optimizing routes:", e);
@@ -201,13 +227,6 @@ export default function SmartRoutesPage() {
     }
   };
   
-  const defaultAppointmentValues: AppointmentFormValues = {
-    customerName: '', address: '', priority: 'medium',
-    dogs: '1', yard_size: 'small', accessibility: 'easy', visit_type: 'regular_recurring', recurring_freq: 'weekly',
-    num_more_dogs: undefined, acres_extralarge: undefined, initial_condition: undefined, heavy_points: undefined,
-    addon_deodorizing: false, addon_disposal: false, serviceTime: 15 
-  };
-
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-2">
@@ -219,7 +238,10 @@ export default function SmartRoutesPage() {
           <Card className="shadow-lg">
             <CardHeader>
               <CardTitle>Generate Efficient Service Routes</CardTitle>
-              <CardDescription>Input appointment details and current location to get AI-powered route suggestions. Service time is auto-calculated.</CardDescription>
+              <CardDescription>
+                Input appointment details and current location. Service time includes an estimated {SETUP_CLEANUP_TIME_MINUTES} minutes for setup/cleanup per stop.
+                Travel time between stops will be optimized by the AI. For crew breaks, add an appointment manually (e.g., "Lunch Break", 30 mins).
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
@@ -259,8 +281,8 @@ export default function SmartRoutesPage() {
                           name={`appointments.${index}.customerName`}
                           render={({ field: f }) => (
                             <FormItem>
-                              <FormLabel>Customer Name</FormLabel>
-                              <FormControl><Input placeholder="John Doe" {...f} className="bg-background" /></FormControl>
+                              <FormLabel>Customer Name / Task</FormLabel>
+                              <FormControl><Input placeholder="John Doe or Lunch Break" {...f} className="bg-background" /></FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -270,8 +292,8 @@ export default function SmartRoutesPage() {
                           name={`appointments.${index}.address`}
                           render={({ field: f }) => (
                             <FormItem>
-                              <FormLabel>Address</FormLabel>
-                              <FormControl><Input placeholder="456 Oak Ave" {...f} className="bg-background" /></FormControl>
+                              <FormLabel>Address / Location</FormLabel>
+                              <FormControl><Input placeholder="456 Oak Ave or On Route" {...f} className="bg-background" /></FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -415,7 +437,7 @@ export default function SmartRoutesPage() {
                           name={`appointments.${index}.serviceTime`}
                           render={({ field: f }) => (
                             <FormItem>
-                              <FormLabel>Est. Service Time (mins)</FormLabel>
+                              <FormLabel>Est. Total Stop Time (mins)</FormLabel>
                               <FormControl>
                                 <Input
                                   readOnly
@@ -423,6 +445,7 @@ export default function SmartRoutesPage() {
                                   className="bg-background border-dashed"
                                 />
                               </FormControl>
+                              <FormDescription>Incl. {SETUP_CLEANUP_TIME_MINUTES} min setup/cleanup.</FormDescription>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -498,7 +521,7 @@ export default function SmartRoutesPage() {
                         <MapPin className="w-4 h-4"/> {route.address}
                     </div>
                     <div className="text-sm text-muted-foreground ml-2 flex items-center gap-2">
-                        <Clock className="w-4 h-4"/> Service Time: {route.serviceTime} mins
+                        <Clock className="w-4 h-4"/> Stop Duration: {route.serviceTime} mins
                     </div>
                      <div className="text-sm text-muted-foreground ml-2 flex items-center gap-2">
                          Priority: <Badge variant={route.priority === "high" ? "destructive" : (route.priority === "medium" ? "default" : "secondary")} className="capitalize">{route.priority}</Badge>
@@ -513,5 +536,6 @@ export default function SmartRoutesPage() {
     </div>
   );
 }
+    
 
     
