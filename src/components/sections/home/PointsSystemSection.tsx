@@ -1,8 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PawPrint, Calculator, CheckCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 
 const pointsFactors = [
   "Number of Dogs",
@@ -23,11 +21,10 @@ export default function PointsSystemSection() {
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-primary">Understanding Our Points System</h2>
           <p className="mt-4 text-lg text-foreground/80 max-w-3xl mx-auto">
-            Our transparent points system helps determine the effort required for each service, ensuring fair and consistent pricing. The more complex the job, the more points it accrues.
+            Our transparent points system determines service effort, ensuring fair and consistent pricing. More complex jobs accrue more points.
           </p>
         </div>
 
-        {/* Removed max-w-4xl mx-auto from this div to allow card to be wider */}
         <div> 
           <Card className="shadow-xl bg-card text-card-foreground">
             <CardHeader>
@@ -37,7 +34,7 @@ export default function PointsSystemSection() {
             </CardHeader>
             <CardContent className="space-y-6 text-base">
               <p className="text-card-foreground/90">
-                Our unique Points System is designed with transparency and fairness at its core. Instead of flat rates that don't always account for the unique aspects of your situation, we assess several key factors to determine the specific effort required for each service. This means you only pay for the work needed, ensuring a personalized and equitable price for every cleanup.
+                Our Points System ensures fair and transparent pricing. Instead of flat rates, we assess key factors for each service, meaning you only pay for the work required. This guarantees a personalized and equitable price for every cleanup.
               </p>
               <div>
                 <h4 className="font-semibold text-lg text-primary mb-3">Key Factors We Consider:</h4>
@@ -51,10 +48,10 @@ export default function PointsSystemSection() {
                 </ul>
               </div>
                <p className="text-card-foreground/90">
-                Each selected option within these factors contributes a set number of points to a total score for your requested visit. The higher the complexity (e.g., more dogs, larger yard, heavier initial cleanup), the more points are accrued. This total point score then directly corresponds to one of our clear pricing tiers. You can see this system in action and get an instant estimate on our 'Get Quote' page. This way, you understand exactly how your service cost is calculated before we even arrive.
+                Each factor choice adds points to your visit's total score. More complex jobs (e.g., more dogs, larger yard, heavier initial cleanup) accrue more points. This total score then directly corresponds to one of our clear pricing tiers. See this system in action and get an instant estimate on our 'Get Quote' page to understand your costs upfront.
               </p>
                <p className="text-sm text-muted-foreground pt-4 border-t mt-6">
-                This system ensures you receive a fair price tailored to your specific needs, and it allows us to accurately allocate resources for efficient and thorough service.
+                This tailored approach provides fair pricing for your specific needs and allows us to deliver efficient, thorough service.
               </p>
             </CardContent>
           </Card>
@@ -63,3 +60,4 @@ export default function PointsSystemSection() {
     </section>
   );
 }
+
