@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -63,7 +63,7 @@ interface PointsBreakdown {
 }
 
 export default function GetQuotePage() {
-  const { toast } = useToast();
+  const { toast } = useToast(); // Kept for potential future use, e.g. form submission confirmation
   const [calculationResult, setCalculationResult] = useState<PointsBreakdown | null>(null);
 
   const form = useForm<PricingFormValues>({
@@ -76,9 +76,11 @@ export default function GetQuotePage() {
       addon_deodorizing: false,
       addon_disposal: false,
     },
+    mode: 'onChange', // Validate on change for better feedback with live calculation
   });
 
-  const { watch, control, setValue } = form;
+  const { watch, control, setValue, formState: { errors } } = form;
+  
   const watchedVisitType = watch('visit_type');
   const watchedInitialCondition = watch('initial_condition');
   const watchedDogs = watch('dogs');
@@ -91,40 +93,34 @@ export default function GetQuotePage() {
   const showAcresExtraLarge = watchedYardSize === 'extralarge';
 
    useEffect(() => {
-    if (!showRecurringFrequency) {
-      setValue('recurring_freq', undefined);
+    if (!showRecurringFrequency && form.getValues('recurring_freq') !== undefined) {
+      setValue('recurring_freq', undefined, { shouldValidate: true });
     }
-    if (!showInitialConditionSection) {
-      setValue('initial_condition', undefined);
+    if (!showInitialConditionSection && form.getValues('initial_condition') !== undefined) {
+      setValue('initial_condition', undefined, { shouldValidate: true });
     }
-    if (!showHeavyConditionPoints) {
-      setValue('heavy_points', undefined);
+    if (!showHeavyConditionPoints && form.getValues('heavy_points') !== undefined) {
+      setValue('heavy_points', undefined, { shouldValidate: true });
     }
-    if (!showNumMoreDogs) {
-      setValue('num_more_dogs', undefined);
+    if (!showNumMoreDogs && form.getValues('num_more_dogs') !== undefined) {
+      setValue('num_more_dogs', undefined, { shouldValidate: true });
     }
-    if (!showAcresExtraLarge) {
-      setValue('acres_extralarge', undefined);
+    if (!showAcresExtraLarge && form.getValues('acres_extralarge') !== undefined) {
+      setValue('acres_extralarge', undefined, { shouldValidate: true });
     }
-  }, [showRecurringFrequency, showInitialConditionSection, showHeavyConditionPoints, showNumMoreDogs, showAcresExtraLarge, setValue]);
+  }, [showRecurringFrequency, showInitialConditionSection, showHeavyConditionPoints, showNumMoreDogs, showAcresExtraLarge, setValue, form]);
 
 
-  const calculatePoints: SubmitHandler<PricingFormValues> = (data) => {
+  const performLiveCalculation = useCallback((data: PricingFormValues) => {
     let points = {
-      dogs: 0,
-      yard: 0,
-      access: 0,
-      frequency: 0,
-      initial: 0,
-      addons: 0,
-      total: 0,
+      dogs: 0, yard: 0, access: 0, frequency: 0, initial: 0, addons: 0, total: 0,
     };
 
     // 1. Dogs
     if (data.dogs === '1') points.dogs = 1;
     else if (data.dogs === '2') points.dogs = 2;
     else if (data.dogs === '3') points.dogs = 3;
-    else if (data.dogs === 'more' && data.num_more_dogs) {
+    else if (data.dogs === 'more' && data.num_more_dogs && data.num_more_dogs >= 4) {
       points.dogs = 3 + (data.num_more_dogs - 3);
     }
 
@@ -132,7 +128,7 @@ export default function GetQuotePage() {
     if (data.yard_size === 'small') points.yard = 1;
     else if (data.yard_size === 'medium') points.yard = 2;
     else if (data.yard_size === 'large') points.yard = 3;
-    else if (data.yard_size === 'extralarge' && data.acres_extralarge) {
+    else if (data.yard_size === 'extralarge' && data.acres_extralarge && data.acres_extralarge > 1) {
       const additionalAcres = Math.max(0, data.acres_extralarge - 1);
       points.yard = 3 + Math.round(additionalAcres * 2);
     }
@@ -147,17 +143,20 @@ export default function GetQuotePage() {
       points.frequency = 10;
     } else if (data.visit_type === 'second_weekly') {
       points.frequency = 1;
-    } else if (data.recurring_freq) { // initial_recurring or regular_recurring
+    } else if ((data.visit_type === 'initial_recurring' || data.visit_type === 'regular_recurring') && data.recurring_freq) {
       if (data.recurring_freq === 'weekly') points.frequency = 2;
       else if (data.recurring_freq === 'biweekly') points.frequency = 4;
       else if (data.recurring_freq === 'monthly') points.frequency = 7;
     }
 
     // 5. Initial Cleanup Condition
-    if (showInitialConditionSection && data.initial_condition) {
+    const currentVisitType = data.visit_type;
+    const shouldShowInitial = currentVisitType === 'onetime' || currentVisitType === 'initial_recurring';
+
+    if (shouldShowInitial && data.initial_condition) {
       if (data.initial_condition === 'recent') points.initial = 0;
       else if (data.initial_condition === 'moderate') points.initial = 3;
-      else if (data.initial_condition === 'heavy' && data.heavy_points) {
+      else if (data.initial_condition === 'heavy' && data.heavy_points && data.heavy_points >=6 && data.heavy_points <=10) {
         points.initial = data.heavy_points;
       }
     }
@@ -168,11 +167,20 @@ export default function GetQuotePage() {
 
     points.total = points.dogs + points.yard + points.access + points.frequency + points.initial + points.addons;
     setCalculationResult(points);
-    toast({
-      title: "Quote Calculated!",
-      description: `Total points for this visit: ${points.total}. See breakdown below.`,
+  }, [setCalculationResult]);
+
+  useEffect(() => {
+    const subscription = watch((values) => {
+      const result = pricingFormSchema.safeParse(values);
+      if (result.success) {
+        performLiveCalculation(result.data as PricingFormValues);
+      } else {
+        setCalculationResult(null);
+      }
     });
-  };
+    return () => subscription.unsubscribe();
+  }, [watch, performLiveCalculation, pricingFormSchema]);
+
 
   return (
     <div className="container py-8 md:py-12">
@@ -186,7 +194,7 @@ export default function GetQuotePage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(calculatePoints)} className="space-y-8">
+            <form className="space-y-8"> {/* No onSubmit needed for live calculation */}
               
               {/* Number of Dogs */}
               <FormField
@@ -485,11 +493,6 @@ export default function GetQuotePage() {
                         )}
                     />
                 </div>
-              
-              <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={form.formState.isSubmitting}>
-                <Calculator className="mr-2 h-5 w-5" />
-                {form.formState.isSubmitting ? 'Calculating...' : 'Calculate Points & Estimate'}
-              </Button>
             </form>
           </Form>
         </CardContent>
@@ -508,7 +511,7 @@ export default function GetQuotePage() {
             <p>Points from Yard Size: <span className="font-semibold text-primary">{calculationResult.yard}</span></p>
             <p>Points from Accessibility: <span className="font-semibold text-primary">{calculationResult.access}</span></p>
             <p>Points from Visit Type / Base Frequency: <span className="font-semibold text-primary">{calculationResult.frequency}</span></p>
-            {(calculationResult.initial > 0 || showInitialConditionSection) && (
+            {(calculationResult.initial > 0 || (watchedVisitType === 'onetime' || watchedVisitType === 'initial_recurring')) && (
               <p>Points from Initial Cleanup Condition: <span className="font-semibold text-primary">{calculationResult.initial}</span></p>
             )}
             {calculationResult.addons > 0 && (
