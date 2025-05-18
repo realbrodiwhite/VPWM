@@ -43,7 +43,7 @@ export default function Navbar() {
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <Dog className="h-7 w-7 text-primary" />
-          <span className="font-bold text-lg text-primary">Valley Pet Waste</span>
+          <span className="font-bold text-lg text-primary">Pet Waste Management</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">
@@ -66,7 +66,7 @@ export default function Navbar() {
                 <div className="grid gap-4 py-6">
                   <Link href="/" className="flex items-center gap-2 mb-4">
                      <Dog className="h-7 w-7 text-primary" />
-                    <span className="font-bold text-lg text-primary">Valley Pet Waste</span>
+                    <span className="font-bold text-lg text-primary">Pet Waste Management</span>
                   </Link>
                   <NavLinksContent isMobile={true} />
                 </div>

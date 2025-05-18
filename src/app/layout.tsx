@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({ // Corrected instantiation
 });
 
 export const metadata: Metadata = {
-  title: 'Valley Pet Waste Management', // Updated title
+  title: 'Pet Waste Management', // Updated title
   description: 'Your reliable partner for pet waste solutions.', // Updated description
 };
 
