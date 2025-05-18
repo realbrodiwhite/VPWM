@@ -4,8 +4,12 @@ import Footer from "@/components/layout/Footer";
 import HeroSection from "@/components/sections/home/HeroSection";
 import AboutSection from "@/components/sections/home/AboutSection";
 import ServicesSection from "@/components/sections/home/ServicesSection";
+import PointsSystemSection from "@/components/sections/home/PointsSystemSection";
+import GetQuoteBanner from "@/components/sections/home/GetQuoteBanner"; // New
 import PricingSection from "@/components/sections/home/PricingSection";
-import ContactSection from "@/components/sections/home/ContactSection";
+import ContactFormSection from "@/components/sections/home/ContactSection";
+import MapContactSection from "@/components/sections/home/MapContactSection";
+import BlogSection from "@/components/sections/home/BlogSection";
 
 export default function HomePage() {
   return (
@@ -15,8 +19,12 @@ export default function HomePage() {
         <HeroSection />
         <AboutSection />
         <ServicesSection />
+        <PointsSystemSection />
+        <GetQuoteBanner /> {/* New Banner Added Here */}
         <PricingSection />
-        <ContactSection />
+        <ContactFormSection />
+        <MapContactSection />
+        <BlogSection />
       </main>
       <Footer />
     </>
