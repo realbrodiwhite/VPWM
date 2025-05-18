@@ -23,8 +23,8 @@ const coreValues = [
 
 export default function AboutSection() {
   return (
-    <section id="about" className="py-16 md:py-24 bg-background">
-      <div className="container">
+    <section id="about" className="min-h-screen flex items-center bg-background">
+      <div className="container py-16 md:py-24">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-primary">About Valley Pet Waste Management</h2>
           <p className="mt-4 text-lg text-foreground/80 max-w-2xl mx-auto">
@@ -59,3 +59,4 @@ export default function AboutSection() {
     </section>
   );
 }
+
