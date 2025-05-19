@@ -16,7 +16,7 @@ const recentActivity = [
     { id: 2, description: "New service 'Yard Deodorizing' added to your plan.", date: "October 20, 2024"},
 ];
 
-export default function CustomerDashboardPage() {
+export default function CustomerAccountPage() { // Renamed component
   return (
     <div className="space-y-8">
       <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -35,7 +35,7 @@ export default function CustomerDashboardPage() {
                <p className="text-muted-foreground">No upcoming services.</p>
             )}
             <Button asChild variant="link" className="px-0 text-primary">
-                <Link href="/dashboard/services">View All Services →</Link>
+                <Link href="/account/services">View All Services →</Link>
             </Button>
           </CardContent>
         </Card>
@@ -49,7 +49,7 @@ export default function CustomerDashboardPage() {
             <div className="text-2xl font-bold">$0.00</div>
             <p className="text-xs text-muted-foreground">Next bill due November 1st</p>
              <Button asChild variant="link" className="px-0 text-primary">
-                <Link href="/dashboard/billing">View Billing Details →</Link>
+                <Link href="/account/billing">View Billing Details →</Link>
             </Button>
           </CardContent>
         </Card>
@@ -61,7 +61,7 @@ export default function CustomerDashboardPage() {
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full bg-accent-foreground text-accent hover:bg-accent-foreground/90">
-              <Link href="/dashboard/book">Schedule Now</Link>
+              <Link href="/account/book">Schedule Now</Link>
             </Button>
           </CardContent>
         </Card>
@@ -91,7 +91,7 @@ export default function CustomerDashboardPage() {
                     <CalendarDays className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
                     <p>You have no upcoming services scheduled.</p>
                     <Button asChild className="mt-4 bg-accent hover:bg-accent/90 text-accent-foreground">
-                        <Link href="/dashboard/book">Book a Service</Link>
+                        <Link href="/account/book">Book a Service</Link>
                     </Button>
                 </CardContent>
             </Card>

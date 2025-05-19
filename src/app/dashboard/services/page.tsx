@@ -20,7 +20,7 @@ export default function MyServicesPage() {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-primary">My Services</h1>
         <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-          <Link href="/dashboard/book">
+          <Link href="/account/book">
             <CalendarPlus className="mr-2 h-4 w-4" /> Book New Service
           </Link>
         </Button>
@@ -72,7 +72,7 @@ export default function MyServicesPage() {
                       )}
                       {service.status !== "Active" && (
                          <Button variant="link" size="sm" asChild className="text-primary">
-                            <Link href="/dashboard/book">Re-Book</Link>
+                            <Link href="/account/book">Re-Book</Link>
                          </Button>
                       )}
                     </TableCell>
@@ -85,7 +85,7 @@ export default function MyServicesPage() {
               <CalendarPlus className="mx-auto h-16 w-16 text-muted-foreground/50 mb-4" />
               <p className="mb-2">You have no services scheduled yet.</p>
               <Button asChild>
-                <Link href="/dashboard/book">Book Your First Service</Link>
+                <Link href="/account/book">Book Your First Service</Link>
               </Button>
             </div>
           )}

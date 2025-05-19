@@ -36,7 +36,7 @@ export default function LoginPage() {
         title: "Login Successful",
         description: "Welcome back!",
       });
-      router.push("/dashboard");
+      router.push("/account"); // Updated redirect
     } else if (data.email === "admin@example.com" && data.password === "password") {
        toast({
         title: "Admin Login Successful",

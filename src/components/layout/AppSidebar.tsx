@@ -15,7 +15,7 @@ import {
   SidebarTrigger,
   SidebarProvider,
   SidebarInset
-} from "@/components/ui/sidebar"; // Assuming this is the custom sidebar from shadcn
+} from "@/components/ui/sidebar"; 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
@@ -32,7 +32,7 @@ interface AppSidebarProps {
   navItems: NavItem[];
   user: { name: string; email: string; avatarUrl?: string };
   children: React.ReactNode;
-  dashboardType: "Customer" | "Admin";
+  dashboardType: "Customer" | "Admin" | "Employee"; // Added Employee
 }
 
 export function AppSidebarLayout({ navItems, user, children, dashboardType }: AppSidebarProps) {
@@ -49,11 +49,23 @@ export function AppSidebarLayout({ navItems, user, children, dashboardType }: Ap
     router.push("/login");
   };
 
+  let homeLink = "/";
+  if (dashboardType === "Admin") {
+    homeLink = "/admin";
+  } else if (dashboardType === "Customer") {
+    homeLink = "/account"; // Updated for customer
+  } else if (dashboardType === "Employee") {
+    homeLink = "/employee";
+  }
+  
+  const dashboardTitle = dashboardType === "Customer" ? "My Account" : `${dashboardType} Dashboard`;
+
+
   return (
     <SidebarProvider defaultOpen>
       <Sidebar collapsible="icon" className="border-r">
         <SidebarHeader className="p-4">
-          <Link href={dashboardType === "Admin" ? "/admin" : "/dashboard"} className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
+          <Link href={homeLink} className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
             <Dog className="h-8 w-8 text-primary" />
             <span className="font-bold text-xl text-primary group-data-[collapsible=icon]:hidden">
               Valley Pet
@@ -103,8 +115,7 @@ export function AppSidebarLayout({ navItems, user, children, dashboardType }: Ap
             <div className="md:hidden">
                  <SidebarTrigger />
             </div>
-            <h1 className="text-xl font-semibold text-primary">{dashboardType} Dashboard</h1>
-            {/* You can add more header elements here, like a search bar or notifications */}
+            <h1 className="text-xl font-semibold text-primary">{dashboardTitle}</h1>
         </header>
         <main className="flex-1 p-4 md:p-6 lg:p-8 bg-background">
             {children}
