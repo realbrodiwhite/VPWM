@@ -31,7 +31,6 @@ export default function LoginPage() {
     await new Promise(resolve => setTimeout(resolve, 1000));
     console.log("Login data:", data);
     
-    // Simulate successful login
     if (data.email === "customer@example.com" && data.password === "password") {
       toast({
         title: "Login Successful",
@@ -44,6 +43,12 @@ export default function LoginPage() {
         description: "Welcome, Admin!",
       });
       router.push("/admin");
+    } else if (data.email === "employee@example.com" && data.password === "password") {
+       toast({
+        title: "Employee Login Successful",
+        description: "Welcome!",
+      });
+      router.push("/employee");
     }
     else {
       toast({
@@ -61,7 +66,7 @@ export default function LoginPage() {
           <div className="flex justify-center mb-4">
             <Dog className="h-12 w-12 text-primary" />
           </div>
-          <CardTitle className="text-3xl font-bold text-primary">Customer Login</CardTitle>
+          <CardTitle className="text-3xl font-bold text-primary">Account Login</CardTitle>
           <CardDescription>Access your Valley Pet Waste Management account.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -93,8 +98,11 @@ export default function LoginPage() {
               Sign up
             </Link>
           </p>
-          <p className="text-muted-foreground text-xs">
-            Demo: customer@example.com / password OR admin@example.com / password
+           <p className="text-muted-foreground text-xs text-center">
+            Demo Logins (pw: password):<br/>
+            customer@example.com<br/>
+            admin@example.com<br/>
+            employee@example.com
           </p>
         </CardFooter>
       </Card>
