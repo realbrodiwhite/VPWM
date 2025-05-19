@@ -13,7 +13,7 @@ const pricingPlans = [
     features: ["1 Dog Included", "Weekly Outdoor Visits (4-5/month)", "Thorough Scooping & Waste Haul-Away", "Eco-Friendly Disposal", "Yard Deodorizing (add $10/mo)"],
     popular: false,
     cta: "Choose Outdoor Oasis",
-    icon: <Sun className="w-12 h-12 text-primary" /> // Changed to text-primary
+    icon: <Sun className="w-12 h-12 text-primary" /> // Changed from text-accent-foreground
   },
   {
     name: "Total Pet Pamper Weekly",
@@ -23,7 +23,7 @@ const pricingPlans = [
     features: ["1-2 Pets (Dogs/Cats)", "Weekly Outdoor Cleanup", "Weekly Indoor Cleanup (up to 2 litter boxes)", "Complimentary Yard OR Litter Deodorizing", "Eco-Friendly Disposal", "Priority Scheduling"],
     popular: true,
     cta: "Choose Total Pamper",
-    icon: <Zap className="w-12 h-12 text-primary" />
+    icon: <Zap className="w-12 h-12 text-primary" /> // Already primary, good
   },
   {
     name: "Indoor Fresh Weekly",
@@ -33,20 +33,20 @@ const pricingPlans = [
     features: ["Up to 2 Litter Boxes", "Weekly Scooping & Litter Refresh", "Odor Neutralization Treatment", "Waste Disposal", "Safe for Pets & Family"],
     popular: false,
     cta: "Choose Indoor Fresh",
-    icon: <Home className="w-12 h-12 text-primary" /> // Changed to text-primary
+    icon: <Home className="w-12 h-12 text-primary" /> // Changed from text-accent-foreground
   },
 ];
 
 export default function PricingSection() {
   return (
-    <section id="pricing" className="py-16 md:py-24 bg-muted"> {/* Changed to bg-muted */}
+    <section id="pricing" className="py-16 md:py-24 bg-muted">
       <div className="container">
         <div className="text-center mb-12">
           <div className="flex justify-center mb-4">
-            <Gem className="w-12 h-12 text-primary" /> {/* Changed icon color */}
+            <Gem className="w-12 h-12 text-primary" />
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-primary">Simple, Transparent Pricing</h2> {/* Changed text color */}
-          <p className="mt-4 text-lg text-foreground/80 max-w-2xl mx-auto"> {/* Changed text color */}
+          <h2 className="text-3xl md:text-4xl font-bold text-primary">Simple, Transparent Pricing</h2>
+          <p className="mt-4 text-lg text-foreground/80 max-w-2xl mx-auto">
             No hidden fees, just straightforward plans to fit your indoor, outdoor, or combined pet waste needs.
           </p>
         </div>
@@ -87,13 +87,13 @@ export default function PricingSection() {
               <CardFooter>
                  <Button
                   asChild
-                  className={`w-full ${plan.popular ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'bg-accent hover:bg-accent/90 text-accent-foreground'}`} /* Popular button Green, others Yellow */
+                  className={`w-full ${plan.popular ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'bg-accent hover:bg-accent/90 text-accent-foreground'}`}
                 ><Link href="/login">{plan.cta}</Link></Button>
               </CardFooter>
             </Card>
           ))}
         </div>
-        <p className="text-center mt-12 text-foreground/80"> {/* Changed text color */}
+        <p className="text-center mt-12 text-foreground/80">
           Need a custom package, bi-weekly, or one-time cleanup? <Link href="/#contact-form" className="text-primary hover:underline font-semibold">Contact us</Link> for a personalized quote.
         </p>
       </div>
