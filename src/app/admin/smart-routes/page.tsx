@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Route as RouteIcon, PlusCircle, Trash2, Loader2, MapPin, Clock, Fuel, Coffee, Utensils, ClipboardList } from 'lucide-react';
+import { Route as RouteIcon, PlusCircle, Trash2, Loader2, MapPin, Clock, Fuel, Coffee, Utensils, ClipboardList, Navigation } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { suggestOptimizedRoutes, SuggestOptimizedRoutesInput, SuggestOptimizedRoutesOutput } from '@/ai/flows/suggest-optimized-routes';
@@ -170,8 +170,8 @@ const getBreakAppointmentValues = (
     priority: 'low',
     serviceTime: breakDuration,
     // Ensure specific visit_type that requires minimal sub-fields for breaks
-    visit_type: 'onetime',
-    initial_condition: 'recent',
+    visit_type: 'onetime', // Simplest type that bypasses most conditional logic
+    initial_condition: 'recent', // Simplest condition
   };
 };
 
@@ -206,10 +206,17 @@ export default function SmartRoutesPage() {
   useEffect(() => {
     watchedAppointments.forEach((app, index) => {
       if (app.customerName === BREAK_NAMES.SHORT || app.customerName === BREAK_NAMES.LUNCH) {
-        // For breaks, ensure serviceTime is fixed and not recalculated based on points
         const expectedTime = app.customerName === BREAK_NAMES.SHORT ? 15 : 60;
         if (app.serviceTime !== expectedTime) {
           setValue(`appointments.${index}.serviceTime`, expectedTime, { shouldValidate: true });
+        }
+        // Ensure other point-related fields are reset to defaults for breaks if they were changed
+        // This helps keep break entries clean if they were toggled from a regular appointment
+        const breakDefaults = getBreakAppointmentValues(app.customerName === BREAK_NAMES.SHORT ? "short" : "lunch", app.address);
+        for (const key in defaultAppointmentDetails) {
+            if (app[key as keyof AppointmentFormValues] !== breakDefaults[key as keyof AppointmentFormValues]) {
+                 setValue(`appointments.${index}.${key as FieldPath<SmartRoutesFormValues>}`, breakDefaults[key as keyof AppointmentFormValues] as any);
+            }
         }
         return;
       }
@@ -231,7 +238,7 @@ export default function SmartRoutesPage() {
       const appointmentsForAI = data.appointments.map(app => ({
         customerName: app.customerName,
         address: app.address,
-        serviceTime: app.serviceTime,
+        serviceTime: app.serviceTime, // This now includes setup/cleanup for jobs
         priority: app.priority,
       }));
 
@@ -331,7 +338,6 @@ export default function SmartRoutesPage() {
                 
                 <h3 className="text-lg font-medium text-primary mb-2 flex items-center gap-2"><ClipboardList className="w-5 h-5"/>Scheduled Stops</h3>
                 {fields.map((field, index) => {
-                  const appointmentErrors = errors.appointments?.[index];
                   const currentAppointment = watchedAppointments[index] || {};
                   const isBreak = currentAppointment.customerName === BREAK_NAMES.SHORT || currentAppointment.customerName === BREAK_NAMES.LUNCH;
                   
@@ -591,8 +597,13 @@ export default function SmartRoutesPage() {
                     <div className="text-sm text-muted-foreground ml-2 flex items-center gap-2">
                         <MapPin className="w-4 h-4"/> {route.address}
                     </div>
+                     {route.travelTimeToThisStop !== undefined && route.travelTimeToThisStop > 0 && (
+                        <div className="text-sm text-muted-foreground ml-2 flex items-center gap-2">
+                            <Navigation className="w-4 h-4 text-blue-500"/> Travel to this stop: {route.travelTimeToThisStop} mins
+                        </div>
+                    )}
                     <div className="text-sm text-muted-foreground ml-2 flex items-center gap-2">
-                        <Clock className="w-4 h-4"/> Stop Duration: {route.serviceTime} mins
+                        <Clock className="w-4 h-4"/> On-site duration: {route.serviceTime} mins
                     </div>
                      <div className="text-sm text-muted-foreground ml-2 flex items-center gap-2">
                          Priority: <Badge variant={route.priority === "high" ? "destructive" : (route.priority === "medium" ? "default" : "secondary")} className="capitalize">{route.priority}</Badge>

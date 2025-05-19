@@ -1,3 +1,4 @@
+
 // src/ai/flows/suggest-optimized-routes.ts
 'use server';
 
@@ -16,14 +17,14 @@ const SuggestOptimizedRoutesInputSchema = z.object({
   appointments: z
     .array(
       z.object({
-        customerName: z.string().describe('The name of the customer.'),
-        address: z.string().describe('The service address for the appointment.'),
-        serviceTime: z.number().describe('The duration of the service in minutes.'),
-        priority: z.enum(['high', 'medium', 'low']).describe('The priority of the appointment.'),
+        customerName: z.string().describe('The name of the customer or task (e.g., "Lunch Break").'),
+        address: z.string().describe('The service address for the appointment or location of the task/break.'),
+        serviceTime: z.number().describe('The duration of the service or task in minutes. This includes any on-site setup and cleanup time for jobs.'),
+        priority: z.enum(['high', 'medium', 'low']).describe('The priority of the appointment/task.'),
       })
     )
-    .describe('A list of scheduled appointments, including customer name, address, and service time.'),
-  currentLocation: z.string().describe('The current location of the service vehicle.'),
+    .describe('A list of scheduled appointments or tasks, including customer/task name, address, total on-site service/task time, and priority.'),
+  currentLocation: z.string().describe('The current location of the service vehicle (e.g., address or GPS coordinates).'),
 });
 export type SuggestOptimizedRoutesInput = z.infer<typeof SuggestOptimizedRoutesInputSchema>;
 
@@ -31,13 +32,14 @@ const SuggestOptimizedRoutesOutputSchema = z.object({
   optimizedRoutes: z
     .array(
       z.object({
-        customerName: z.string().describe('The name of the customer.'),
-        address: z.string().describe('The service address for the appointment.'),
-        serviceTime: z.number().describe('The duration of the service in minutes.'),
-        priority: z.enum(['high', 'medium', 'low']).describe('The priority of the appointment.'),
+        customerName: z.string().describe('The name of the customer or task.'),
+        address: z.string().describe('The service address for the appointment or location of the task.'),
+        serviceTime: z.number().describe('The duration of the service or task in minutes (including setup/cleanup for jobs).'),
+        priority: z.enum(['high', 'medium', 'low']).describe('The priority of the appointment/task.'),
+        travelTimeToThisStop: z.number().optional().describe('Estimated travel time in minutes to this stop from the previous one, or from the current location for the first stop. This field might be omitted if travel time cannot be determined or is zero (e.g., for the first stop if it is at the current location).'),
       })
     )
-    .describe('An optimized list of appointments, sorted by the most efficient route.'),
+    .describe('An optimized list of appointments/tasks, sorted by the most efficient route, including estimated travel time to each stop.'),
   totalTravelTime: z.number().describe('The estimated total travel time in minutes for the optimized route.'),
   totalFuelConsumption: z
     .number()
@@ -55,18 +57,22 @@ const prompt = ai.definePrompt({
   output: {schema: SuggestOptimizedRoutesOutputSchema},
   prompt: `You are an expert route optimization specialist.
 
-You are provided with a list of scheduled appointments, the current location of the service vehicle, and you will suggest the most efficient service routes to minimize travel time and fuel consumption.
+You are provided with a list of scheduled appointments/tasks, the current location of the service vehicle. The 'serviceTime' for each appointment already includes any necessary on-site work time, setup, and cleanup.
 
-Appointments:
+Your goal is to suggest the most efficient service routes to minimize travel time and fuel consumption.
+
+Appointments/Tasks:
 {{#each appointments}}
-- Customer: {{customerName}}, Address: {{address}}, Service Time: {{serviceTime}} minutes, Priority: {{priority}}
+- Task/Customer: {{customerName}}, Address: {{address}}, On-site Duration: {{serviceTime}} minutes, Priority: {{priority}}
 {{/each}}
 
-Current Location: {{currentLocation}}
+Current Vehicle Location: {{currentLocation}}
 
-Consider the priority of the appointments and optimize the route accordingly. The route should start from the current location.
+Consider the priority of the appointments/tasks and optimize the route accordingly. The route should start from the current vehicle location.
 
-Return the optimized routes, total travel time in minutes, and total fuel consumption in liters.`,
+For each stop in the optimized route, you MUST estimate the travel time in minutes to reach that stop from the previous stop (or from the current vehicle location for the first stop). Include this as 'travelTimeToThisStop'.
+
+Return the optimized routes (including customer/task name, address, on-site service/task duration, priority, and estimated travel time to this stop), total overall travel time in minutes, and total fuel consumption in liters.`,
 });
 
 const suggestOptimizedRoutesFlow = ai.defineFlow(
@@ -80,3 +86,4 @@ const suggestOptimizedRoutesFlow = ai.defineFlow(
     return output!;
   }
 );
+
