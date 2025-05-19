@@ -11,15 +11,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Route as RouteIcon, PlusCircle, Trash2, Loader2, MapPin, Clock, Coffee, Utensils, ClipboardList, Navigation, AlertTriangle } from 'lucide-react';
+import { Route as RouteIcon, PlusCircle, Trash2, Loader2, MapPin, Clock, Coffee, Utensils, ClipboardList, Navigation, AlertTriangle, Fuel } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from '@/hooks/use-toast';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { suggestOptimizedRoutes, type SuggestOptimizedRoutesInput, type SuggestOptimizedRoutesOutput } from '@/ai/flows/suggest-optimized-routes';
+
 
 const MIN_BASE_SERVICE_TIME_POINTS_SYSTEM = 15;
 const SETUP_CLEANUP_TIME_MINUTES = 10;
-const FIXED_AVERAGE_TRAVEL_TIME_MINUTES = 20; // Placeholder for non-AI travel time estimation
 
 const BREAK_NAMES = {
   SHORT: "Short Break (15 min)",
@@ -77,18 +78,6 @@ const smartRoutesSchema = z.object({
 
 type AppointmentFormValues = z.infer<typeof appointmentSchema>;
 type SmartRoutesFormValues = z.infer<typeof smartRoutesSchema>;
-
-// Output structure for the simplified scheduler
-interface ScheduledAppointment extends AppointmentFormValues {
-  estimatedStartTime: string;
-  estimatedEndTime: string;
-  travelTimeToThisStop: number;
-}
-interface SimpleScheduleOutput {
-  scheduledRoute: ScheduledAppointment[];
-  totalTravelTime: number;
-  totalOnSiteTime: number;
-}
 
 const calculatePointsForAppointment = (data: Partial<AppointmentFormValues>): number => {
   let points = { dogs: 0, yard: 0, access: 0, frequency: 0, initial: 0, addons: 0 };
@@ -150,68 +139,14 @@ const getBreakAppointmentValues = (type: "short" | "lunch", currentLocationValue
   const breakName = type === "short" ? BREAK_NAMES.SHORT : BREAK_NAMES.LUNCH;
   return {
     id: crypto.randomUUID(), ...defaultAppointmentDetails, customerName: breakName, address: currentLocationValue || "On Route",
-    priority: 'low', serviceTime: breakDuration, visit_type: 'onetime', initial_condition: 'recent',
+    priority: 'low', serviceTime: breakDuration, visit_type: 'onetime', initial_condition: 'recent', dogs: '1', yard_size: 'small', accessibility: 'easy' // ensure all required fields have basic defaults for breaks
   };
 };
-
-// Helper to add minutes to a Date object
-const addMinutes = (date: Date, minutes: number): Date => {
-  return new Date(date.getTime() + minutes * 60000);
-};
-
-// Helper to format Date object to HH:MM string
-const formatTime = (date: Date): string => {
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-};
-
-const generateSimpleSchedule = (currentLocation: string, startOfDayStr: string, appointments: AppointmentFormValues[]): SimpleScheduleOutput => {
-  const priorityOrder = { high: 1, medium: 2, low: 3 };
-  const sortedAppointments = [...appointments].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-
-  const scheduledRoute: ScheduledAppointment[] = [];
-  let totalTravelTime = 0;
-  let totalOnSiteTime = 0;
-
-  const [startHour, startMinute] = startOfDayStr.split(':').map(Number);
-  let currentTime = new Date(); // Use today's date, then set time
-  currentTime.setHours(startHour, startMinute, 0, 0);
-
-  let currentVehicleLocation = currentLocation;
-
-  for (const app of sortedAppointments) {
-    let travelTime = 0;
-    if (scheduledRoute.length > 0 || currentVehicleLocation.toLowerCase() !== app.address.toLowerCase()) {
-         // Only add travel time if it's not the first stop from the same location, or if addresses differ
-         if (currentVehicleLocation.toLowerCase() !== app.address.toLowerCase()) {
-            travelTime = FIXED_AVERAGE_TRAVEL_TIME_MINUTES;
-         }
-    }
-    
-    const arrivalTimeAtStop = addMinutes(currentTime, travelTime);
-    const startTimeAtStop = arrivalTimeAtStop; // Arrive and start
-    const endTimeAtStop = addMinutes(startTimeAtStop, app.serviceTime);
-
-    scheduledRoute.push({
-      ...app,
-      estimatedStartTime: formatTime(startTimeAtStop),
-      estimatedEndTime: formatTime(endTimeAtStop),
-      travelTimeToThisStop: travelTime,
-    });
-
-    totalTravelTime += travelTime;
-    totalOnSiteTime += app.serviceTime;
-    currentTime = endTimeAtStop; // Next available time is after current job finishes
-    currentVehicleLocation = app.address; // Update vehicle location
-  }
-
-  return { scheduledRoute, totalTravelTime, totalOnSiteTime };
-};
-
 
 export default function SmartRoutesPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [scheduleResults, setScheduleResults] = useState<SimpleScheduleOutput | null>(null);
+  const [scheduleResults, setScheduleResults] = useState<SuggestOptimizedRoutesOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const form = useForm<SmartRoutesFormValues>({
@@ -242,11 +177,12 @@ export default function SmartRoutesPage() {
           setValue(`appointments.${index}.serviceTime`, expectedTime, { shouldValidate: true });
         }
         const breakDefaults = getBreakAppointmentValues(app.customerName === BREAK_NAMES.SHORT ? "short" : "lunch", app.address);
-        for (const key in defaultAppointmentDetails) {
-            if (app[key as keyof AppointmentFormValues] !== breakDefaults[key as keyof AppointmentFormValues]) {
-                 setValue(`appointments.${index}.${key as FieldPath<SmartRoutesFormValues>}`, breakDefaults[key as keyof AppointmentFormValues] as any);
+        // Ensure all required fields from appointmentSchema have a valid default for breaks
+        (Object.keys(defaultAppointmentDetails) as Array<keyof typeof defaultAppointmentDetails>).forEach(key => {
+            if (app[key] !== breakDefaults[key]) {
+                 setValue(`appointments.${index}.${key as FieldPath<SmartRoutesFormValues>}`, breakDefaults[key] as any, { shouldValidate: false }); // don't re-validate break specific fields
             }
-        }
+        });
         return;
       }
       const points = calculatePointsForAppointment(app);
@@ -263,21 +199,30 @@ export default function SmartRoutesPage() {
     setScheduleResults(null);
     setError(null);
     try {
-      // Simulate processing delay if needed
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const result = generateSimpleSchedule(data.currentLocation, data.startOfDay, data.appointments);
+      // Prepare input for AI flow
+      const aiInput: SuggestOptimizedRoutesInput = {
+        currentLocation: data.currentLocation,
+        startOfDay: data.startOfDay,
+        appointments: data.appointments.map(app => ({
+          customerName: app.customerName,
+          address: app.address,
+          serviceTime: app.serviceTime,
+          priority: app.priority,
+        })),
+      };
+
+      const result = await suggestOptimizedRoutes(aiInput);
       setScheduleResults(result);
       toast({
-        title: "Schedule Generated!",
-        description: "A sequential schedule has been generated. Travel times are fixed estimates.",
+        title: "AI Optimized Schedule Generated!",
+        description: "The AI has proposed an optimized route and schedule.",
       });
     } catch (e) {
-      console.error("Error generating schedule:", e);
-      const errorMessage = e instanceof Error ? e.message : "An unknown error occurred.";
-      setError(`Failed to generate schedule: ${errorMessage}`);
+      console.error("Error generating AI schedule:", e);
+      const errorMessage = e instanceof Error ? e.message : "An unknown error occurred while contacting the AI scheduler.";
+      setError(`Failed to generate AI schedule: ${errorMessage}`);
       toast({
-        title: "Scheduling Failed",
+        title: "AI Scheduling Failed",
         description: errorMessage,
         variant: "destructive",
       });
@@ -292,29 +237,30 @@ export default function SmartRoutesPage() {
   const shortBreaksTaken = watchedAppointments.filter(app => app.customerName === BREAK_NAMES.SHORT).length;
   const lunchBreaksTaken = watchedAppointments.filter(app => app.customerName === BREAK_NAMES.LUNCH).length;
   const canTakeShortBreak = shortBreaksTaken < 2;
-  const canTakeLunchBreak = lunchBreaksTaken < 1 && totalWorkTime >= 240;
+  const canTakeLunchBreak = lunchBreaksTaken < 1 && totalWorkTime >= 240; // 4 hours = 240 minutes
 
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-2">
         <RouteIcon className="w-8 h-8 text-primary" />
-        <h1 className="text-3xl font-bold text-primary">Service Route Planner</h1>
+        <h1 className="text-3xl font-bold text-primary">AI Route Optimizer & Scheduler</h1>
       </div>
       <Alert variant="default" className="bg-primary/10 border-primary/30">
         <AlertTriangle className="h-5 w-5 text-primary" />
-        <AlertTitle className="text-primary font-semibold">Simplified Scheduler</AlertTitle>
+        <AlertTitle className="text-primary font-semibold">AI-Powered Scheduling</AlertTitle>
         <AlertDescription className="text-primary/80">
-          This tool generates a basic sequential schedule. It does NOT optimize routes for travel time or fuel.
-          Travel between stops is estimated using a fixed average of {FIXED_AVERAGE_TRAVEL_TIME_MINUTES} minutes (unless at same address).
+          This tool uses AI to optimize routes and estimate travel times.
+          Service times for jobs automatically include {SETUP_CLEANUP_TIME_MINUTES} minutes for setup/cleanup.
+          Add breaks using the dedicated buttons.
         </AlertDescription>
       </Alert>
       <Form {...form}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle>Generate Service Schedule</CardTitle>
+              <CardTitle>Generate Optimized Service Schedule</CardTitle>
               <CardDescription>
-                Input task details, start location, and start time. Service time for jobs includes {SETUP_CLEANUP_TIME_MINUTES} minutes for setup/cleanup.
+                Input task details, start location, and desired start time.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -441,7 +387,7 @@ export default function SmartRoutesPage() {
             <CardFooter>
               <Button type="submit" className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading || fields.length === 0}>
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RouteIcon className="mr-2 h-4 w-4" />}
-                {isLoading ? 'Generating...' : 'Generate Simple Schedule'}
+                {isLoading ? 'Optimizing...' : 'Generate AI Optimized Schedule'}
               </Button>
             </CardFooter>
           </Card>
@@ -458,9 +404,9 @@ export default function SmartRoutesPage() {
       {scheduleResults && (
         <Card className="mt-8 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-2xl text-primary">Generated Schedule (Simplified)</CardTitle>
+            <CardTitle className="text-2xl text-primary">AI Generated Schedule</CardTitle>
              <CardDescription>
-              This is a basic sequential schedule. Priority is considered first. Travel time between different locations is a fixed estimate of {FIXED_AVERAGE_TRAVEL_TIME_MINUTES} minutes.
+              The AI has optimized the route and calculated the schedule based on your inputs and desired start time.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -469,32 +415,43 @@ export default function SmartRoutesPage() {
                     <Clock className="w-6 h-6 text-primary"/>
                     <div>
                         <p className="text-sm text-muted-foreground">Total Estimated On-Site Time</p>
-                        <p className="text-lg font-semibold text-primary">{scheduleResults.totalOnSiteTime} minutes</p>
+                        <p className="text-lg font-semibold text-primary">
+                            {scheduleResults.optimizedRoutes.reduce((sum, item) => sum + item.serviceTime, 0)} minutes
+                        </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-md">
                     <Navigation className="w-6 h-6 text-primary"/>
                     <div>
-                        <p className="text-sm text-muted-foreground">Total Estimated Travel Time (Fixed Average)</p>
+                        <p className="text-sm text-muted-foreground">Total Estimated Travel Time</p>
                         <p className="text-lg font-semibold text-primary">{scheduleResults.totalTravelTime} minutes</p>
                     </div>
                 </div>
+                {scheduleResults.totalFuelConsumption && (
+                 <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-md md:col-span-2">
+                    <Fuel className="w-6 h-6 text-primary"/>
+                    <div>
+                        <p className="text-sm text-muted-foreground">Total Estimated Fuel Consumption</p>
+                        <p className="text-lg font-semibold text-primary">{scheduleResults.totalFuelConsumption.toFixed(1)} liters</p>
+                    </div>
+                </div>
+                )}
             </div>
             
             <div>
-              <h4 className="text-lg font-medium text-primary mb-2">Scheduled Order:</h4>
+              <h4 className="text-lg font-medium text-primary mb-2">Optimized Route & Schedule:</h4>
               <ol className="list-decimal list-inside space-y-4">
-                {scheduleResults.scheduledRoute.map((item, index) => (
-                  <li key={item.id || index} className="p-4 border rounded-md bg-background hover:shadow-md transition-shadow">
+                {scheduleResults.optimizedRoutes.map((item, index) => (
+                  <li key={item.customerName + '-' + index} className="p-4 border rounded-md bg-background hover:shadow-md transition-shadow">
                     <p className="font-semibold text-primary">{index + 1}. {item.customerName}</p>
                     <div className="text-sm text-muted-foreground ml-2 space-y-1 mt-1">
                         <div className="flex items-center gap-2"><MapPin className="w-4 h-4"/> {item.address}</div>
-                        <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-green-600"/> Est. Arrival: {item.estimatedStartTime}</div>
+                        {item.travelTimeToThisStop !== undefined && item.travelTimeToThisStop > 0 && (
+                             <div className="flex items-center gap-2"><Navigation className="w-4 h-4 text-blue-500"/> Travel to this stop: {item.travelTimeToThisStop} mins</div>
+                        )}
+                        <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-green-600"/> Est. Arrival / Start: {item.estimatedStartTime}</div>
                         <div className="flex items-center gap-2"><Clock className="w-4 h-4"/> On-site duration: {item.serviceTime} mins</div>
                         <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-red-600"/> Est. Departure: {item.estimatedEndTime}</div>
-                        {item.travelTimeToThisStop > 0 && (
-                            <div className="flex items-center gap-2"><Navigation className="w-4 h-4 text-blue-500"/> Travel to this stop: {item.travelTimeToThisStop} mins (fixed estimate)</div>
-                        )}
                         <div className="flex items-center gap-2"> Priority: <Badge variant={item.priority === "high" ? "destructive" : (item.priority === "medium" ? "default" : "secondary")} className="capitalize">{item.priority}</Badge></div>
                     </div>
                   </li>
@@ -507,5 +464,3 @@ export default function SmartRoutesPage() {
     </div>
   );
 }
-
-    
