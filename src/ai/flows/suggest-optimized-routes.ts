@@ -13,6 +13,10 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+// This file is no longer used by the primary scheduling logic on the Smart Routes page
+// if the non-AI scheduler is preferred.
+// However, it's kept here in case you want to switch back or use AI for other purposes.
+
 const SuggestOptimizedRoutesInputSchema = z.object({
   appointments: z
     .array(
@@ -48,6 +52,7 @@ const SuggestOptimizedRoutesOutputSchema = z.object({
 export type SuggestOptimizedRoutesOutput = z.infer<typeof SuggestOptimizedRoutesOutputSchema>;
 
 export async function suggestOptimizedRoutes(input: SuggestOptimizedRoutesInput): Promise<SuggestOptimizedRoutesOutput> {
+  // console.warn("AI Route Optimization (suggestOptimizedRoutes) is being called. If you intended to use the simplified non-AI scheduler, this might be unexpected.");
   return suggestOptimizedRoutesFlow(input);
 }
 
@@ -57,7 +62,7 @@ const prompt = ai.definePrompt({
   output: {schema: SuggestOptimizedRoutesOutputSchema},
   prompt: `You are an expert route optimization specialist.
 
-You are provided with a list of scheduled appointments/tasks, the current location of the service vehicle. The 'serviceTime' for each appointment already includes any necessary on-site work time, setup, and cleanup.
+You are provided with a list of scheduled appointments/tasks, and the current location of the service vehicle. The 'serviceTime' for each appointment already includes any necessary on-site work time, setup, and cleanup.
 
 Your goal is to suggest the most efficient service routes to minimize travel time and fuel consumption.
 
@@ -87,3 +92,4 @@ const suggestOptimizedRoutesFlow = ai.defineFlow(
   }
 );
 
+    
